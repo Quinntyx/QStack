@@ -41,7 +41,7 @@ Everything in `shared/` works in both harnesses.
 | `subagents` | Delegate work to child agents, including research, parallel implementation and review. `model-selection` sits inside it. |
 | `git` | Clone, branch, commit, push, mirror. Contains `pr`, `issues`, `init-project` and `github-mirror`. |
 | `runtime-verification` | Decide what evidence a bug fix or change needs before calling it done. |
-| `project-plan` | Write or revise a project plan, architecture doc or roadmap. |
+| `project-plan` | Plan a new project in a `PLAN.md` that shrinks as its parts merge and is deleted when empty. |
 | `agent-repo-guidance` | Write or repair a repository's AGENTS.md or CLAUDE.md. |
 | `edit-config` | Change dotfiles and application settings at their real source. |
 | `create-skill` | Write, revise and test a skill. |

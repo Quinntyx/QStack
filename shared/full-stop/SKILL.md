@@ -58,6 +58,9 @@ those products, with no round cap. Without the word "council", no review council
 
 On the default branch, pick the task branch with `../git/SKILL.md` first.
 
+If the repository has a `PLAN.md`, the request is usually one of its parts. Read it: its
+decisions bind this work.
+
 Research the request yourself: read the code it touches, and search the web for how others have
 built the same thing when that would inform the design.
 
@@ -120,6 +123,8 @@ Make the diff small, and limited to the change that was asked for.
 - Delete comments that narrate the code or restate it.
 - Run the project's formatter and linter.
 - Remove anything the request did not ask for.
+- When the work came from `PLAN.md`, delete the part you built from it, and delete the file if
+  nothing is left. `PLAN.md` lists only work that has not merged.
 
 Commit the cleanup.
 
