@@ -62,6 +62,7 @@ them. Ask for this reply:
 SCORE: <n>/10 against the rubric
 APPROACH: sound | wrong - <one line>
 F1 [blocker|should|nit] <file>:<line> <claim>. Fix: <suggestion>
+LINT: <a lint rule that would catch this kind of mistake mechanically, if there is one>
 ```
 
 **With a comparison**, add the material on each thing being compared (screenshots, research
@@ -84,7 +85,7 @@ objects to. Return that to the caller.
 **Review.** Check every finding against the code yourself. `blocker` means the intended case is
 wrong, `should` means a real bug callers will hit, anything else is a `nit` whatever it was
 labelled. A finding that asks for more than the request asked for is out of scope, not a defect.
-Return each voting seat's score and the confirmed findings. Never invent a score.
+Return each voting seat's score, the confirmed findings and any lint rules proposed. Never invent a score.
 
 Cancel any delegate still running. Add the tagged notes to your final reply, one per line, each
 starting with its tag so a later search finds it:

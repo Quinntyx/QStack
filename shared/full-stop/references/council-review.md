@@ -25,16 +25,20 @@ runs each round; this file is the loop around it.
    request never raised is asking for a different PR; decline it in a line and record the
    decision with its reason, so the next round's brief carries it. A 20-line change should leave
    review as roughly a 20-line change.
-4. With a comparison, read what the reviewers preferred about the other products. Those reasons
+4. Reviewers may propose lint rules. You decide whether each goes in, and the default is yes:
+   a rule that catches a class of mistake mechanically keeps later rounds and builders from
+   repeating it. Leave a rule out, or take it back out, when it gets in the way of the change
+   you judge correct for the problem.
+5. With a comparison, read what the reviewers preferred about the other products. Those reasons
    say what to improve next better than the scores do.
-5. Size the fixes. A few small ones you make yourself. More than a couple of hundred lines, or
+6. Size the fixes. A few small ones you make yourself. More than a couple of hundred lines, or
    anything that needs careful checking in the running app, goes to a builder, briefed as in
    `full-stop` Stage 4: every piece of context it needs, and exactly what you want, so it has no
    design to invent.
-6. Check the fixes the way `full-stop` Stage 5 does, then commit. Commits made between rounds
+7. Check the fixes the way `full-stop` Stage 5 does, then commit. Commits made between rounds
    should be `fix` or `chore`. If you are about to write `feat`, stop and ask whether the
    council has talked you into a feature nobody requested.
-7. Run the next round.
+8. Run the next round.
 
 ## When it will not pass
 
