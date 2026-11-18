@@ -76,9 +76,12 @@ something the plan never builds.
 ## Stage 5: Deliver
 
 Give the user the summary from the Output Contract. If the request was only for a plan, stop
-here. Committing the plan follows the task's own authority.
+here.
+
+`PLAN.md` may be committed. A plan big enough to span many PRs is worth keeping under version
+control, and tracking it is what lets each PR remove its own part.
 
 # Building from a plan
 
-Whoever builds a part removes it from `PLAN.md` in the same PR, along with any decision that
+Whoever builds a part removes it from `PLAN.md`, in the same PR when the file is tracked, along with any decision that
 only that part needed. The PR that removes the last part deletes the file.
