@@ -14,7 +14,9 @@ Before the first sentence, answer these in your head. If you cannot, find out or
 - **Who is reading?** Name one real kind of person: a stranger who found the repository, a
   reviewer on your team, the user who asked the question, yourself in six months.
 - **What do they already know?** A stranger knows none of your project's names, history or
-  setup. A teammate knows the codebase but not what you did today.
+  setup, but they know the field: how they got here tells you. Someone who opens a repository
+  of agent skills already knows what a skill is; someone reading a Rust crate's README knows
+  what a crate is. A teammate knows the codebase but not what you did today.
 - **Why are they here, and what will they do next?** Decide whether to use it, approve it, fix
   it, or just understand it.
 
@@ -30,8 +32,8 @@ Then write only for that person:
   with it.
 - How the thing is tested, linted and maintained is for contributors. Leave it to the
   contributor file, or put it last under a heading the main reader can skip.
-- Use the reader's words. Define a term the first time if they would not know it, and skip the
-  definition if they would.
+- Use the reader's words. Define only the terms you made up for this project. Do not explain
+  the field's own vocabulary to someone who came looking for it.
 - Give each reader what they came for: a stranger wants to know what this is and whether it is
   for them, a teammate wants the change and the risk, the person who asked wants the answer.
 - When one document has two readers, serve the more distant one first and put the rest under a
@@ -41,23 +43,26 @@ Say each thing once, in the place the reader will look for it.
 
 # Sound like the person who wrote it
 
-Modeling the reader decides which facts go in. It does not change who is speaking.
+Knowing the reader tells you which facts go in. Then go one step further: write as a person who
+wanted something, and choose the wants this reader will recognize in themselves. "I wanted the
+linter's checks without waiting 40 seconds on every save" works in a linter's README because
+most people who open it have sat through that wait. The reader thinks "me too" and keeps
+reading. That is the difference between prose someone wrote and prose that was produced.
 
-- Write as the author. When a person made the thing, say "I": "I built this because I kept
-  asking three models to review my code by hand." That sentence tells a stranger what the thing
-  is for and that a person stands behind it.
-- Keep the author's reasons about what the thing does: the problem that annoyed them, what they
-  wanted it to do for them, what they copied and from whom. Reasons about where the author keeps
-  it or how they arrange their own files are background, even when the author said them first
-  and even when they are phrased as "I wanted".
-- Do not turn a person's account into product copy. Product copy addresses "you", promises an
-  outcome, and leads with a tagline: "Say a phrase and the agent ships your change." The same
-  fact in the author's voice: "I say 'full send' and the agent takes the change through review
-  and the merge without checking in with me."
-- Describe what you made and how you use it. Let the reader decide whether they want it.
-- Plain and a little uneven beats polished. If a sentence sounds like a landing page, it is
-  slop even when every word in it is true.
-- Use "you" for instructions the reader will follow, such as install steps.
+The wants that travel are about the problem the thing solves. Wants about your own
+housekeeping, such as where you keep the files or how your machine is arranged, rarely do,
+because the reader's machine is arranged differently. One want the reader shares does more than
+three listed side by side, so pick the best one and let the others go.
+
+So say "I" when a person made the thing, tell what bothered you, what you wanted instead and
+whose work you borrowed, and describe how you use it. Let the reader decide whether they want
+it. Product copy does the opposite: it addresses "you", promises an outcome and opens on a
+tagline. If a sentence sounds like a landing page, it is slop even when every word is true.
+Plain and a little uneven beats polished.
+
+A voice is not a licence to make things up. Never write "I made this because I wanted X"
+unless the author said so or it is plain from what they built. Use the wants they gave you, and
+if none of them would mean anything to this reader, write without one.
 
 # Make every sentence checkable
 
@@ -120,9 +125,8 @@ leaves the same empty sentence.
 
 # The editing pass
 
-Read the finished draft once as its reader, against the sections above. At every sentence about
-the author, name what this reader does with it, and cut the sentence if the answer is nothing.
-Then read it again:
+Read the finished draft once as its reader, against the sections above: is each
+sentence something this reader came for or would recognize? Then read it again:
 fixing slop leaves marks of its own, usually clipped fragments, a punchy line at the end of each
 paragraph, or one construction repeated down the page.
 
