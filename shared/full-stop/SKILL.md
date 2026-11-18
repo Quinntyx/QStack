@@ -69,6 +69,9 @@ something you can show. Choose one architecture from that mix.
 
 Otherwise, choose the design yourself.
 
+When the whole change is small enough that writing a builder's brief would take longer than
+making it, a few dozen lines at most, make it yourself and go to Stage 5.
+
 ## Stage 3: Plan
 
 Write `ARCHITECTURE.md` at the root of the worktree: every design decision, then the work split
