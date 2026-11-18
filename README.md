@@ -46,6 +46,7 @@ Everything in `shared/` works in both harnesses.
 | `create-skill` | Write, revise and test a skill. |
 | `deslop` | Write prose a person will read without it sounding machine-made. |
 | `estimate-time` | Estimate how long agent work will take, from measured per-model times. |
+| `stack-philosophy` | Not a procedure. The beliefs the other skills are built on, read when a skill does not cover the situation, so the agent can work out what I would want. |
 | `reflect` | Turn lessons from the current conversation into proposed skill edits. Adapted from pstack. |
 
 `claude/` and `pi/` each hold three `harness-*` skills (`harness-config`, `harness-delegation`,
