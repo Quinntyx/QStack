@@ -36,7 +36,8 @@ is not permission to merge.
 
 ## Stage 3: Merge
 
-Recheck the live head and the gate. Call `unwatch_pull_request`, then merge with the method the
+Recheck the live head and the gate. If the PR has CI, wait until every check on the latest
+commit has finished and passed; a pending check is not a pass. Call `unwatch_pull_request`, then merge with the method the
 repository uses; look at its allowed methods and recent merged PRs. When that is unclear or
 mixed, squash and merge. With a merge queue or
 auto-merge, stay until the host reports the PR merged. Merge through branch protection as
