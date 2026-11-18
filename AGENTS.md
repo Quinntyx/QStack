@@ -16,10 +16,14 @@ layout. Author skills with the `create-skill` skill.
   ground and may appear in `shared/`.
 - Model names, efforts and provider routing belong in `shared/subagents/model-selection` and the
   council's Panels section, not scattered through other skills.
-- Write skills as loose, plain-English descriptions of what is wanted, in the Contract/Entrypoint
-  shape `create-skill` defines. Do not pile on guards, templates and edge-case procedure. Line
-  count is not the measure: a skill is as long as its content needs. Prefer a sentence the user
-  can edit to a config file or a helper script; skills carry no `bin/` directories.
+- A skill teaches one capability: a recipe for doing a thing. Where and to what it is applied
+  comes from the context, not the skill. Keep the staged procedure `create-skill` defines, which
+  weaker models need, but make each step demand only what the capability itself needs. Do not
+  invent requirements for the sake of rigor, and do not assume the situation: a skill about
+  writing good PRs must work on a PR you did not open or in a repository that is not yours, and
+  must not stretch to cover issues.
+- Line count is not the measure; a skill is as long as its content needs. Prefer a sentence the
+  user can edit to a config file or a helper script; skills carry no `bin/` directories.
 - Prose in this repository follows the `deslop` skill.
 
 ## Checks
