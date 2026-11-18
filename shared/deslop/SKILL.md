@@ -21,17 +21,43 @@ Before the first sentence, answer these in your head. If you cannot, find out or
 Then write only for that person:
 
 - Open with what they came for and stop when they have it.
-- Keep a sentence only if this reader would miss it. Your reasons for building the thing, how
-  you organize your own machine and what you tried first are true and matter to you. They stay
-  out unless they change what the reader does.
+- Sort what you know before you write. Whoever asked for the piece told you things so that you
+  would understand the job: why they made it, how their machine is arranged, how they maintain
+  it. That is background for you. A fact moves into the piece only if this reader would do
+  something differently for knowing it.
+- Test each sentence the same way: would this reader miss it? "I moved this out of our
+  monorepo last spring" is true and mattered to the author, and a stranger can do nothing
+  with it.
+- How the thing is tested, linted and maintained is for contributors. Leave it to the
+  contributor file, or put it last under a heading the main reader can skip.
 - Use the reader's words. Define a term the first time if they would not know it, and skip the
   definition if they would.
-- Match the voice to the relationship. Address a stranger as "you" and show them what they get.
-  Give a teammate the change and the risk. Give the user who asked a question the answer.
+- Give each reader what they came for: a stranger wants to know what this is and whether it is
+  for them, a teammate wants the change and the risk, the person who asked wants the answer.
 - When one document has two readers, serve the more distant one first and put the rest under a
   heading the first reader can skip.
 
 Say each thing once, in the place the reader will look for it.
+
+# Sound like the person who wrote it
+
+Modeling the reader decides which facts go in. It does not change who is speaking.
+
+- Write as the author. When a person made the thing, say "I": "I built this because I kept
+  asking three models to review my code by hand." That sentence tells a stranger what the thing
+  is for and that a person stands behind it.
+- Keep the author's reasons about what the thing does: the problem that annoyed them, what they
+  wanted it to do for them, what they copied and from whom. Reasons about where the author keeps
+  it or how they arrange their own files are background, even when the author said them first
+  and even when they are phrased as "I wanted".
+- Do not turn a person's account into product copy. Product copy addresses "you", promises an
+  outcome, and leads with a tagline: "Say a phrase and the agent ships your change." The same
+  fact in the author's voice: "I say 'full send' and the agent takes the change through review
+  and the merge without checking in with me."
+- Describe what you made and how you use it. Let the reader decide whether they want it.
+- Plain and a little uneven beats polished. If a sentence sounds like a landing page, it is
+  slop even when every word in it is true.
+- Use "you" for instructions the reader will follow, such as install steps.
 
 # Make every sentence checkable
 
@@ -94,7 +120,9 @@ leaves the same empty sentence.
 
 # The editing pass
 
-Read the finished draft once as its reader, against the sections above. Then read it again:
+Read the finished draft once as its reader, against the sections above. At every sentence about
+the author, name what this reader does with it, and cut the sentence if the answer is nothing.
+Then read it again:
 fixing slop leaves marks of its own, usually clipped fragments, a punchy line at the end of each
 paragraph, or one construction repeated down the page.
 
