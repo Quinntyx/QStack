@@ -11,50 +11,50 @@ metadata:
 
 ## Input Contract
 
-- The target, revision, evidence tier and permitted effects bound by runtime-verification Stage 1.
+- The target, revision, evidence tier and permitted effects chosen in runtime-verification
+  Stage 1.
 
 ## Output Contract
 
-- Observed evidence for the original user journey on the final build, or a named blocked boundary,
-  returned to runtime-verification Stage 3 for the report.
+- What you observed the original user flow do on the final build, or the part you could not run,
+  handed back to runtime-verification Stage 3 for the report.
 
 # Entrypoint
 
-## Stage 1: Reproduce the user journey
+## Stage 1: Reproduce the flow
 
-1. Exercise the reported entrypoint with the relevant input and environment. Capture its result,
-   logs, exit state and elapsed time; use screenshots or traces when those expose the symptom.
-2. Follow startup, first use, steady use, cancellation and reconnect paths only where the request
-   or observed failure makes them relevant.
-3. Record the reproduction command or interaction sequence and preserve the failing input. With
-   no runtime available, record that boundary and continue to Stage 2.
+Run the entrypoint the user reported, with the input and environment that matter. Capture the
+result, the logs and the exit state, and a screenshot or trace when that is what shows the
+symptom. Keep the command or steps and the failing input.
 
-## Stage 2: Trace the causal path
+Follow startup, cancellation, reconnect and similar paths when the request or the failure points
+at them. If nothing can be run, say so and go to Stage 2.
 
-1. Follow the actual input through state transitions, process boundaries, asynchronous work and
-   persistence until the first divergence from the intended behavior.
-2. Form a causal hypothesis and distinguish it from plausible alternatives with a focused
-   experiment, trace or source evidence. Reuse existing instrumentation where possible.
-3. With an authorized repair and a supported cause, continue to Stage 3. Otherwise return the
-   findings and unresolved uncertainty to runtime-verification Stage 3.
+## Stage 2: Trace the cause
 
-## Stage 3: Repair the cause
+Follow the input through state changes, process boundaries, asynchronous work and storage to the
+first point where behavior departs from what was intended. Form a hypothesis and run one
+experiment that separates it from the other plausible causes.
 
-1. Modify the smallest coherent component that owns the incorrect behavior, preserving the
-   requested architecture and observable semantics across affected callers.
-2. Add a focused regression check when it captures a durable failure mode, preferring an existing
-   test path. Delegated repair follows the subagents skill.
+With a cause the evidence supports and a repair the task permits, go to Stage 3. Otherwise hand
+the findings back to runtime-verification Stage 3.
 
-## Stage 4: Verify the repaired runtime
+## Stage 3: Repair
 
-1. Run the decisive check against the repaired build, then repeat the original user journey.
-2. Confirm the running process loaded the changed build and the relevant configuration.
-3. Use real process, browser, kernel, network or GPU execution for claims that depend on that
-   boundary; name the narrower coverage of isolated tests when the real boundary is unavailable.
-4. A resolved symptom with passing checks returns to runtime-verification Stage 3. Otherwise
-   return to Stage 2 with the new evidence, within the selected tier's bounds.
+Change the smallest component that owns the wrong behavior. Add a regression check, in an
+existing test path, when the failure is one that could come back.
 
-# Notes
+## Stage 4: Verify the repaired build
 
-- T3 preview tools need a current browser-work request or a named page/tab. A "full send"/"full
-  stop" grant supplies that permission for its task.
+Run the deciding check against the repaired build, then repeat the original flow. Confirm the
+running process loaded the changed build and configuration. A claim that depends on a real
+process, browser, network or GPU needs that real thing; if it is unavailable, say what the
+isolated test does and does not cover.
+
+When the symptom is gone and the checks pass, hand back to runtime-verification Stage 3.
+Otherwise return to Stage 2 with what you learned.
+
+# Browser permission
+
+T3 preview tools need a current browser-work request or a named page or tab. A "full stop" or
+"full send" grant supplies that permission for its task.

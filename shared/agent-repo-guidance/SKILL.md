@@ -11,53 +11,57 @@ metadata:
 
 ## Input Contract
 
-- Existing repository, requested guidance foundation or observed agent failure.
-- Actual agent/contribution docs, architecture/testing notes and project commands.
-- Authority over the target source and any requested mechanical enforcement.
+- A repository, and either a request for agent guidance or a mistake an agent made in it.
+- The repository's existing guidance, contribution docs and real commands.
 
 ## Output Contract
 
-- Focused guidance grounded in this repository, with working pointers and real verification steps.
-- One authoritative owner per rule; tests/lint only for demonstrated, objectively detectable cases.
-- Honest coverage and delivery status; no automatic CI, hosting or generic lint infrastructure.
+- Guidance specific to this repository, with pointers that resolve and commands that run.
+- Each rule in one place.
+- A test or lint rule only for a mistake that has happened and that a machine can detect.
+
+# What goes in a guidance file
+
+Operating rules: what an agent working here must know and cannot quickly find out from the code.
+That means unusual domain vocabulary, safety and state boundaries, which doc to read for which
+task, the taste rules that matter, and the real commands for checking a change.
+
+A guidance file does not describe how the existing system behaves. The code does that, and a
+second copy in prose goes stale and misleads the next agent. Work that is not built yet belongs
+in `PLAN.md`, per `../project-plan/SKILL.md`.
 
 # Entrypoint
 
-## Stage 1: Resolve the owner and starting point
+## Stage 1: Read what exists
 
-1. Read existing AGENTS.md/CLAUDE.md and relevant internal docs completely. Inspect the actual stack,
-   scripts and failure example. Preserve established vocabulary and unrelated user work.
-2. Resolve managed-source ownership with `../edit-config/SKILL.md` when applicable. For an
-   explicitly requested new guidance file, load the `harness-config` skill and use the guidance
-   bootstrap it names when its destination and writing effects match the assignment. A bootstrap
-   owns the initial codebase survey/draft, not a second independent generation pass. Existing
-   guidance repairs update in place.
-3. Without a compatible bootstrap, draft from the inspected repository and name that boundary.
-   Read-only/draft-only work produces findings or an unpublished draft, not a generated repo file.
-4. Separate product plans from operating rules with `../project-plan/SKILL.md` when needed, then
-   continue to Stage 2.
+Read the existing AGENTS.md and CLAUDE.md in full, the scripts and the stack, and the failure
+example if there is one. Keep the repository's own vocabulary.
 
-## Stage 2: Curate the repository-specific delta
+If the guidance file is managed configuration, find its source with `../edit-config/SKILL.md`.
+For a new guidance file the user asked for, load the `harness-config` skill and use the bootstrap
+it names when there is one; that bootstrap does the first survey and draft, and you edit its
+result. Without one, draft from what you read. Existing guidance is repaired in place.
 
-1. Keep durable operating knowledge in the existing AGENTS.md/CLAUDE.md authority: unusual domain
-   vocabulary, safety/state boundaries, docs to read by task, consequential taste rules and actual
-   changed-file checks. Explain nonobvious reasons; omit facts easily rediscovered from source.
-2. Put cross-component architecture/traps in existing internal docs with conditional pointers;
-   keep local rationale in comments and behavior in tests. A requested scaffold need not invent a
-   docs tree. Keep one owner instead of copying the same policy into several files.
-3. Use the project's real command names, fixtures and surface checklists. Select the evidence cost
-   from `../runtime-verification/SKILL.md`; repository requirements remain a floor. Name expensive
-   CI checks separately rather than presenting whole-project tests as file-scoped commands.
-4. For a repeated, mechanically detectable mistake, use the existing test/lint framework and prove
-   a violating case fails while legitimate neighboring cases pass. Judgment stays guidance.
-   Missing checks are proposals until implemented; a bootstrap draft does not authorize enforcement.
-5. Review any bootstrap draft against these constraints, then continue to Stage 3.
+A read-only or draft-only request produces findings or draft text, not a file in the repository.
 
-## Stage 3: Verify and hand off
+## Stage 2: Write the repository's own rules
 
-1. Read the resulting document set together for contradictions, stale paths, copied tool catalogs
-   and unintended authority. Check new links and run the actual focused commands it recommends.
-2. Walk a representative task plus a relevant negative/effect-boundary case through the guidance.
-   Distinguish a static walk-through from live agent evaluation.
-3. Report changed paths, rationale, checks and pending effects. Use the source owner's publication
-   procedure only when assigned. Future failures update their existing rule owner, not a changelog.
+1. Write the operating rules described above. Give the reason for any rule that is not obvious.
+   Leave out what an agent would find in a minute of reading the source.
+2. Put a rule where it is used: a local reason in a comment, behavior in a test, and a pointer
+   from the guidance file to anything longer. Use the docs the repository already has.
+3. Use the project's real command names, fixtures and checklists. Pick how much checking a change
+   needs from `../runtime-verification/SKILL.md`. Name slow CI-only checks as such, apart from
+   the commands to run on changed files.
+4. For a mistake that keeps recurring and that a machine can detect, add a check in the test or
+   lint framework the repository already uses. Show that a violating case fails and a legitimate
+   neighbor passes. A mistake that takes judgment to spot stays as guidance.
+
+## Stage 3: Check and hand off
+
+Read the guidance files together for contradictions and stale paths. Open every link you added
+and run every command the guidance recommends. Walk one ordinary task through it to see that it
+leads the right way.
+
+Report the paths changed, why, and the checks you ran. Commit or publish only when the task says
+to. When the same mistake happens again later, update the rule that owns it.

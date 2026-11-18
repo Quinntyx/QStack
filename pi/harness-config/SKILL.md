@@ -13,8 +13,9 @@ metadata:
   name. Profile files live under `~/.config/pi/profiles/<profile>/` and are chezmoi targets; their
   source is `dot_config/pi/profiles/<profile>/` in the chezmoi repository. Persistent changes go
   through that source and edit-config's lifecycle.
-- Skills installed from QStack are symlinks into `~/docs/src/QStack/main`; edit them in that
-  repository, not through the link's parent directory and not in chezmoi.
+- Skills installed from QStack are symlinks into a QStack clone. Resolve an installed skill's
+  symlink to find it, and edit the skill in that repository, not through the link's parent
+  directory and not in chezmoi.
 - Pi's Git/npm package manager owns fetched plugins, extensions and skill caches. Change an owned
   fork and its installation declaration, then update only that package through the manager.
 - Auth, model registries, session stores and other runtime state stay out of tracked source.

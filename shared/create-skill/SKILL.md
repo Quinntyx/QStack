@@ -57,8 +57,9 @@ metadata:
 6. Add a short example when exact syntax, output shape, an edge decision, or a common mistake is
    easier to understand concretely. Use the Examples rules; examples supplement rather than replace
    the rule. Omit generic illustrations that add context without changing behavior.
-7. Put repeatable deterministic work in a documented owned helper only when it earns its maintenance
-   cost. Reuse actual tool/environment contracts instead of copying volatile API catalogs.
+7. Prefer a sentence the user can edit to a helper script. A helper is a last resort for
+   repeatable deterministic work that prose cannot carry, and QStack skills carry none. Reuse
+   actual tool/environment contracts instead of copying volatile API catalogs.
 8. Go to Stage 3: Validate and evaluate.
 
 ## Stage 3: Validate and evaluate
@@ -208,8 +209,9 @@ metadata:
 - State what varies and what invariant the example demonstrates so an agent does not memorize an
   incidental account, path, model, or repository. Give runnable examples a reproducible check.
 - Put detailed examples and variant material in `references/` when not every invocation needs them.
-  Use `assets/` for output templates. Helpers normally live in the owning skill's `bin/`; document
-  inputs, dependencies, outputs, side effects, failure modes, and verification.
+  Use `assets/` for output templates. QStack skills carry no `bin/` directory or helper script;
+  where another package's skill does need one, document its inputs, dependencies, outputs, side
+  effects, failure modes, and verification.
 - Version-sensitive instructions need an authoritative source and a last-verified version/date or
   a live discovery step. Keep upstream-owned skills upstream-owned rather than silently patching
   copies in the profile. See the research basis in `references/authoring-patterns.md`.

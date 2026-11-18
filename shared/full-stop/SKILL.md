@@ -19,8 +19,9 @@ metadata:
 ## Output Contract
 
 - The PR open, unmerged and ready per the Readiness gate, or a blocked state with one question.
-- A handoff naming the PR link, final head, verdict, proof, council scores if a council ran,
-  remaining risks and the decisions you made for the user.
+- A handoff naming the PR link, final head, verdict, proof, remaining risks and the decisions you
+  made for the user. If a council ran, each round's scores, and the council skill's tagged notes copied in
+  word for word, one per line, so a later search of the conversation finds them.
 - No PR watch left active, and no delegate left running.
 
 # Entrypoint
@@ -51,7 +52,7 @@ skill:
 | `council 9.5 comp X and Y` | Also score X and Y, and require ours to beat each. `compare` and `comparison` mean the same. |
 
 "Improve our UI full stop unlimited council 9.5 comp ChatGPT Codex and Claude Code Desktop"
-means: improve the UI, review it until every voting seat scores it above 9.5 and above both of
+means: improve the UI, review it until every voting seat scores it at least 9.5 and above both of
 those products, with no round cap. Without the word "council", no review council runs.
 
 ## Stage 2: Design
@@ -93,6 +94,10 @@ Give each chunk to a builder through `../subagents/SKILL.md`, on the builder mod
 to decide and little to explore: the chunk from `ARCHITECTURE.md`, the decisions that constrain
 it, the exact files and symbols, the patterns in the repository to copy, the commands that check
 it, and what is out of scope.
+
+Builders work in the task's own checkout, so their work lands where you can read it. Chunks
+that own different files run in parallel; a chunk that needs another chunk's result waits for
+it.
 
 ## Stage 5: Check and converge
 
@@ -137,8 +142,8 @@ passes. If it does not pass, that file says what to do instead.
 
 ## Stage 8: Open the PR
 
-Run Stage 6 again over anything the review rounds added. Rebase onto the latest default branch
-and open the PR with `../git/pr/SKILL.md`. The description states the change and one line on how
+Run Stage 6 again over anything the review rounds added. Rebase onto the latest tip of the
+branch the PR targets and open the PR with `../git/pr/SKILL.md`. The description states the change and one line on how
 you proved it.
 
 ## Stage 9: CI and comments

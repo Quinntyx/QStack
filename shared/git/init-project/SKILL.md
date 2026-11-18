@@ -10,122 +10,108 @@ metadata:
 
 ## Input Contract
 
-- Project/repository identity, stack, requested local or hosted deliverable, and relevant visibility.
-- Actual stack tools and, for hosted delivery, authenticated Forgejo/GitHub access and CI capacity.
-- Existing T3 project/thread context and any supplied source path; preserve partial prior work.
-- Authority for each requested hosted effect. A local initialization or plan does not create two
-  repositories, publish branches, relocate a thread, or start a new thread implicitly.
+- The project's name and stack, and what was asked for: a local scaffold, or a hosted repository
+  with its visibility.
+- The stack's own tools, already installed. For hosting: logged-in Forgejo and GitHub clients
+  and a CI runner.
+- Any existing source path or partial earlier attempt, which is kept.
+- Each hosted effect has to be part of the request. A local scaffold or a plan creates no
+  repositories, publishes no branches, and neither moves this thread nor starts a new one.
 
 ## Output Contract
 
-- A working source scaffold, real discovered behavioral test, reproducibility files, and honest checks.
-- A T3 project registered against the ordinary source anchor when registration is assigned.
-- For hosted personal bootstrap: canonical Forgejo repository, same-visibility server-side GitHub
-  mirror, accepted initial commit, published `main`/`dev` refs, and exact-revision CI/mirror receipts.
-- No pre-created development worktree. T3 allocates thread/delegate
-  worktrees later against the registered project and committed source baseline.
+- A scaffold that builds, one real test of real behavior, lockfiles and toolchain files, and the
+  checks you ran with their results.
+- For a hosted project: the Forgejo repository, a server-side GitHub mirror with the same
+  visibility, the first commit, `main` and `dev` published, and CI and the mirror both confirmed
+  on that commit.
+- A T3 project registered on the source path, when registration was asked for.
+- No development worktree. T3 makes those later.
 
 # Entrypoint
 
-## Stage 1: Bind the project and effects
+## Stage 1: Settle what is being made
 
-1. Resolve stack, safe one-segment name, package/module identity, source destination, local/hosted
-   scope, visibility, and registration ownership. Personal anchors default to
-   `~/docs/src/<project>/main`; retain an explicit or established source path.
-2. Read relevant existing instructions and inspect exact destination/hosting state. A truly new
-   source continues here. A matching partial setup goes to Stage 7: Resume or report. Conflicting
-   content is preserved and ends there with the concrete reuse decision.
-3. Use actual tool availability and official initializer/testing guidance. Missing installed software
-   is a user prerequisite, not permission to install a toolchain. Resolve material missing choices
-   before mutation, then continue Stage 1.
-4. Hosted scope requires verified host accounts, visibility, runner labels/runtime, and mirror
-   credentials suitable for private sources when applicable. Local-only work skips host checks.
-   Establish safe secret handling through the configured clients, never credential arguments/logs.
-5. With hosted scope go to Stage 2: Establish hosting. With local-only scope go to Stage 3:
-   Initialize source. Planning-only returns the proposed lifecycle at Stage 7 without effects.
+1. Settle the stack, a one-word project name, the package or module name, where the source goes,
+   local or hosted, the visibility, and whether to register a T3 project. The setup section of
+   `../SKILL.md` says where source lives by default; a path the user gave wins.
+2. Look at the destination and the hosts. Nothing there: continue. A matching partial setup: go
+   to Stage 7 and resume it. Something else there: keep it, and go to Stage 7 with the question
+   of whether to reuse it.
+3. Use the tools that are installed and the stack's official initializer and testing guidance. A
+   missing toolchain is something to tell the user to install, not something to install yourself.
+4. For hosting, check the accounts, the visibility, the CI runner's label, and that the server
+   has mirror credentials. Tokens go through the logged-in clients, never on a command line.
+5. Hosted goes to Stage 2. Local-only goes to Stage 3. A request for a plan returns the steps at
+   Stage 7 and changes nothing.
 
-## Stage 2: Establish hosting
+## Stage 2: Create the hosting
 
-1. Read `../github-mirror/SKILL.md` for preservation, visibility, private-source authentication, and
-   server-side mirror setup. This branch owns hosting; do not duplicate or bypass its safeguards.
-2. Create/reuse the authorized empty Forgejo source and same-visibility GitHub mirror only after
-   definite absence or verified compatible partial state. Canonical identity is
-   `git.quinntyx.dev/quinntyx/<project>`; mirrors run server-side, not as a second local origin.
-3. Establish push mirror destination `ssh://github.com/Quinntyx/<project>.git`, interval `8h0m0s`,
-   and `sync_on_commit: true`. Verify actual host capabilities and existing server credentials.
-   Enable Actions only within the hosted bootstrap scope.
-4. Re-read hosting state after writes. An uncertain response is reconciled before retrying.
-   Verified empty hosting goes to Stage 3: Initialize source; a blocker goes to Stage 7.
+1. Read `../github-mirror/SKILL.md` and use it for the mirror; it owns that procedure.
+2. Create the empty Forgejo repository and the GitHub mirror repository with the same
+   visibility, at the addresses in the setup section of `../SKILL.md`. Create each only after
+   confirming it does not exist, or reuse a matching empty one.
+3. Set up the push mirror with interval `8h0m0s` and `sync_on_commit: true`. Enable Actions on
+   the repository.
+4. Read the hosting state back. If a write's result is uncertain, read before retrying. Empty
+   hosting confirmed: go to Stage 3. Blocked: go to Stage 7.
 
-## Stage 3: Initialize source
+## Stage 3: Create the source
 
-1. For hosted source use `t3_project_clone` with the verified canonical URL and chosen empty anchor.
-   For local-only source initialize Git at the selected empty source root on `main`. This is source
-   bootstrap, not creation of a managed thread/delegate worktree. Preserve all path collisions.
-2. Verify origin where applicable, empty/unborn state, and source root. Set an unborn hosted HEAD to
-   `main` only after proving it is empty; never switch populated branches by assumption.
-3. Run the official stack initializer in the source root, supplying actual package identity and
-   avoiding nested Git. Add appropriate ignores/lockfiles/toolchain metadata and a real test through
-   the requested behavior. Follow `../../agent-repo-guidance/SKILL.md` only for requested repository
-   agent foundations; do not invent custom lint rules or an internal-docs tree automatically.
-4. Go to Stage 4: Validate scaffold and CI.
+1. Hosted: clone the empty repository with `t3_project_clone` into the chosen path. Local-only:
+   `git init` at the chosen empty path on `main`.
+2. Check the origin and that the repository is empty. Point an unborn hosted HEAD at `main` only
+   once you have seen it is empty.
+3. Run the stack's official initializer in the source root with the real package name, without
+   letting it create a nested Git repository. Add ignores, lockfiles and toolchain files, and one
+   test that exercises the behavior that was asked for.
+4. Add `AGENTS.md` or similar only if the request asked for it, with
+   `../../agent-repo-guidance/SKILL.md`.
 
-## Stage 4: Validate scaffold and CI
+## Stage 4: Check the scaffold and write CI
 
-1. Run actual discovered tests and the relevant format/lint/type checks. Record commands, results,
-   and missing boundaries. A zero-test success is not a passing behavioral suite.
-2. For hosted scope write `.forgejo/workflows/test.yml` with pushes on all working branches and
-   ordinary pull requests targeting the actual integration branches. Feature-branch pushes need
-   tests too; do not limit push events to `main`/`dev`.
-3. Use the verified runner label, reproducible dependency installation, actual test command,
-   immutable reviewed action URLs, and disabled persisted checkout credentials. Validate YAML with
-   an `on`-preserving parser and check action/toolchain runtime compatibility.
-4. Failed checks return to Stage 3 or this stage for scoped repair. Passing checks go to Stage 5:
-   Commit and publish. A source-only/coordinator boundary instead goes to Stage 7 with a handoff.
+1. Run the tests and the format, lint and type checks the stack has. Record each command and its
+   result. A run that found zero tests is not a passing suite.
+2. For a hosted project, write `.forgejo/workflows/test.yml`. It runs on pushes to every branch,
+   feature branches included, and on pull requests into `main` and `dev`.
+3. In the workflow, use the runner label you checked, a reproducible dependency install, the real
+   test command, action URLs pinned to a reviewed revision, and `persist-credentials: false` on
+   checkout. Parse the YAML with a parser that keeps the `on` key as a string, and check the
+   actions run on the runner's toolchain.
+4. A failing check goes back to Stage 3 or is fixed here. Passing goes to Stage 5. If the task
+   stops before committing, go to Stage 7.
 
 ## Stage 5: Commit and publish
 
-1. Review/stage only owned scaffold paths, inspect the staged diff, and run `git diff --cached --check`.
-   Commit the initial scaffold with `initial commit` when committing is assigned. Explicit no-commit
-   scope goes to Stage 7 with source ready. Local-only work skips remote writes and goes to Stage 6.
-2. For hosted bootstrap push `main` to canonical origin and verify the exact SHA's real CI result.
-   Create the requested `dev` ref at that accepted SHA and publish it without allocating a worktree;
-   an ordinary branch ref is not a T3 workspace. Respect explicit narrower branch policy.
-3. Verify both remote heads and configured defaults. Use the mirror procedure to reconcile refs
-   safely and confirm completed sync, empty error, and matching accepted SHAs on both hosts.
-4. Missing/failed/pending CI or mirror completion stays explicitly pending at Stage 7. Verified
-   hosted delivery goes to Stage 6: Register and hand off.
+1. Stage the scaffold's own paths, read the staged diff and run `git diff --cached --check`.
+   Commit with the message `chore: initial commit`. Local-only work skips to Stage 6.
+2. Push `main` to origin and wait for the CI result on that exact SHA.
+3. Create `dev` at the same SHA and push it. A branch ref is not a workspace; make no worktree.
+4. Confirm both remote heads and the default branch. Then follow the mirror skill until the sync
+   has completed with an empty error and both hosts show the same SHAs.
+5. CI or a mirror sync that is missing, failed or still running is reported as pending at
+   Stage 7. Confirmed delivery goes to Stage 6.
 
-## Stage 6: Register and hand off
+## Stage 6: Register the T3 project
 
-1. Query/reuse any existing T3 project for the verified source root. When registration is assigned,
-   use `t3_project_create` with explicit `workspaceRoot` and truthful saved scripts from the scaffold.
-   Do not invoke its no-workspace convenience bootstrap over an already initialized source tree.
-2. Registration does not change this thread's project binding or cwd. Keep source work explicit with
-   absolute tool paths or `git -C`; report a ready project rather than claiming the thread moved.
-3. Same-project own-thread worktree moves belong to `t3_worktree_handoff`, after
-   `t3_worktree_status`, as a final call with a continuation prompt. It cannot rebind an unrelated
-   scratch thread to a new project. Use managed thread tools rather than shell worktrees.
-4. Delegates in the bound project use `delegate_task(isolation:'worktree')`; T3 chooses their
-   prepared checkout from the coordinator's committed baseline. New top-level project threads use
-   `t3_thread_launch` with explicit workspace strategy only when the user requests a new thread.
-   If this thread belongs elsewhere, report that boundary rather than silently launching one.
-5. Go to Stage 7: Resume or report.
+1. Look for an existing T3 project on the source root and reuse it. When registration was asked
+   for, call `t3_project_create` with an explicit `workspaceRoot` and the scaffold's real run
+   and test scripts. Its create-a-workspace-for-me mode is for an empty path, not this one.
+2. Registering does not move this thread or change its working directory. Keep using absolute
+   paths or `git -C`, and report the project as ready.
+3. Later work in the project gets its workspace from T3: `t3_worktree_handoff` (after
+   `t3_worktree_status`) to move a thread already in the project, `delegate_task` with
+   `isolation:'worktree'` for delegates, and `t3_thread_launch` with a `workspaceStrategy` for a
+   new thread, when the user asks for one or a skill the user invoked calls for one. A thread
+   bound to another project, such as a scratch thread, cannot be moved into this one.
 
-## Stage 7: Resume or report
+## Stage 7: Report or resume
 
-1. Report source/project identity, actual branch refs, checks, and requested completed effects.
-   Include CI/mirror/registration receipts only when performed; keep missing effects explicit.
-2. For resumption inspect retained source, hosted state, refs, visibility, mirror, CI, and registered
-   workspace before continuing the first incomplete stage. Never repeat an uncertain create blindly.
-3. Preserve repositories, worktrees, running jobs, and user changes on failure. Deliver the precise
-   next action; destructive cleanup or new scope requires its own authorization.
-
-# Ownership
-
-- Git/hosting procedures own source identity, history, branch refs, publication, and mirroring.
-- T3 project setup owns registration and saved scripts against the canonical source root.
-- T3 thread/delegate tools own managed worktree allocation and binding; a filesystem cwd change
-  does not perform that binding. Initializing source does not allocate speculative worker worktrees.
-- This agent owns scoped checks and receipts. A coordinator may retain publication/application
-  ownership; initialization does not grant unrequested remote or session-management effects.
+1. Report the source path, the project identity, the branch refs, the checks, and each effect
+   that was requested and done. Mention CI, the mirror and registration only if they happened,
+   and name what is still missing.
+2. To resume, look at the source, the hosted repositories, the refs, the visibility, the mirror,
+   CI and the registered project, then continue from the first stage that is not finished.
+   Never repeat a create whose result you have not read.
+3. On failure, leave the repositories, worktrees and running jobs as they are and say what the
+   next step is. Cleaning up needs its own request, and uses `trash`.

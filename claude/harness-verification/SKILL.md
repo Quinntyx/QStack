@@ -22,5 +22,6 @@ metadata:
 # Boundaries
 
 - A native workflow's completion message is not proof: observe the evidence on the final change.
-- T3 preview tools need a current browser-work request or a named page/tab; an evidence requirement
-  alone does not grant them. A "full send"/"full stop" grant supplies that permission for its task.
+- T3 preview tools need a current browser-work request or a named page or tab; a need for
+  evidence alone does not grant them. A "full stop" or "full send" grant supplies that permission
+  for its task.

@@ -11,115 +11,136 @@ metadata:
 
 ## Input Contract
 
-- Repository identity or supplied checkout, requested operation, and authorized effects.
-- Git and appropriate authenticated hosting access: Forgejo or GitHub as selected by the task.
-- Current T3 project/thread binding and existing checkout ownership when worktrees are involved.
+- The repository (a name, a URL or a checkout), the operation asked for, and what the request
+  allows you to change.
+- Git, and a logged-in client for the host the task is on: Forgejo or GitHub.
+- In T3 Code, the project and thread this session is bound to, when worktrees are involved.
 
 ## Output Contract
 
-- Verified repository, checkout, branch/base, tracking, and requested result.
-- Personal source defaults to a canonical Forgejo origin and `~/docs/src/<repo>/main` anchor.
-  A supplied matching checkout and the repository's actual default branch take precedence.
-- T3 owns managed thread/delegate worktree allocation; Git owns history and authorized publication.
-- A concise receipt with exact revisions and any pending operation. Unrelated work stays intact.
+- The repository, checkout, branch and base you worked on, checked against what is really there,
+  and the result that was asked for.
+- A short report with exact revisions and anything still pending. Work that is not yours is
+  left as it was.
 
 # Entrypoint
 
-## Stage 1: Route and bind authority
+## Stage 1: Route
 
-1. Resolve operation, repository/host, existing checkout, branch/base, and effect ownership from the
-   request. Bind quoted command variables to actual values; preserve explicit local-only limits.
-2. Read the selected child relative to this skill, execute its procedure, and return its outcome:
-   - New project initialization: `init-project/SKILL.md`.
-   - Server-side GitHub mirroring, repair, or migration: `github-mirror/SKILL.md`.
-   - PR drafting, publication, revision, splitting, or review responses: `pr/SKILL.md`.
-   - Issue research, duplicate checks, drafting, publication, revision, or responses: `issues/SKILL.md`.
-   Children are explicit read-through routes: keep their relative paths. They are not
-   independently advertised commands in either harness.
-3. For chezmoi configuration, keep its existing `main` checkout and use `../edit-config/SKILL.md`.
-   Follow assigned source/publication/application ownership and return that receipt. Basic repository
-   operations continue to Stage 2: Resolve source.
+Work out the operation, the repository and host, the checkout, the branch and base, and what the
+request lets you publish. Then read the child that owns the operation and follow it:
 
-## Stage 2: Resolve source
+- Starting a new project: `init-project/SKILL.md`.
+- Setting up, repairing or migrating a server-side GitHub mirror: `github-mirror/SKILL.md`.
+- Drafting, opening, revising or splitting a PR, or answering PR review: `pr/SKILL.md`.
+- Researching, drafting, filing, revising or answering an issue: `issues/SKILL.md`.
 
-1. A supplied checkout is checked for actual origin, branch, worktree layout, and existing changes.
-   Honor a verified matching checkout rather than relocating it to fit a naming preference.
-2. Otherwise normalize a safe owner/repo. Bare personal names prefer `quinntyx` on Forgejo, then
-   `Quinntyx` on GitHub after a definite not-found. Honor explicit foreign owners and hosts.
-   Access/network failures are not evidence of absence; end at Stage 6: Report when unresolved.
-3. Inspect only expected source paths. Personal anchors default to `~/docs/src/<repo>/main`;
-   direct foreign clones use `~/docs/src/<owner>_<repo>/main`. The directory name does not prove
-   the checked-out branch is `main`. Preserve the actual default and established branch association.
-4. Locate-only work goes to Stage 6: Report. An absent requested clone/fork goes to Stage 3:
-   Establish source. Existing matching source goes to Stage 4: Select workspace and branch.
+The children are read through these paths; neither harness advertises them on its own.
 
-## Stage 3: Establish source
+Dotfile and application configuration managed by chezmoi goes through `../edit-config/SKILL.md`,
+on that repository's existing `main` checkout.
 
-1. Verify the destination is absent or already the selected repository; preserve collisions.
-   An explicit fork request may create its fork on the selected contribution host. A clone request
-   alone does not authorize a fork, migration, mirror, visibility change, push, or PR.
-2. Use T3 `t3_project_clone` for a new source anchor, passing the verified remote and destination.
-   Do not manufacture a child checkout in the shell or in a delegate brief. Missing T3 capability
-   ends with the precise blocker rather than a hidden alternate allocation route.
-3. Verify origin, actual default branch, tracking, and retained content. Genuine foreign forks keep
-   their original upstream; personal Forgejo repos use one canonical writable origin and server-side
-   mirrors. Preserve conflicting remote definitions for an explicit decision.
-4. Project registration is a separate local setup concern: use `t3_project_create` only when project
-   setup is assigned. It neither binds the current thread to that project nor starts a new thread.
-   Continue to Stage 4: Select workspace and branch.
+Everything else (locate, clone, fork, branch, commit, push) continues at Stage 2.
 
-## Stage 4: Select workspace and branch
+## Stage 2: Find the source
 
-1. Inspect status, exact branch/upstream, and `git worktree list --porcelain`. Check
-   `t3_worktree_status` before any managed allocation; distinguish this thread's bound repository
-   from another repository reached by an absolute path.
-2. Retain an authorized existing task checkout. Locate/clone/commit/push work does not itself require
-   creating or switching branches. Do not force a remote's default `dev` checkout onto `main`.
-3. For personal feature branches, prefer `feat-<description>` based on existing `dev` unless task or
-   repository policy selects otherwise. Missing policy/base is a focused decision, not permission
-   to invent `main`/`dev`, change ancestry, or move another active checkout's branch.
-4. For an own-thread move within its bound project, use `t3_worktree_handoff` on a new branch after
-   checking eligibility, as the final call with a continuation prompt. It ends the live session;
-   do not confuse it with source setup or a cwd change in a subprocess.
-5. Concurrent same-repo writers use `delegate_task` with `isolation:'worktree'`; T3 allocates their
-   prepared checkouts from the coordinator's committed baseline. Read `../subagents/SKILL.md` for
-   delegation. A different bound project cannot be selected merely by putting its path in the brief.
-6. Only a user-requested new top-level thread uses `t3_thread_launch`, with the correct project and
-   explicit workspace strategy. Do not create a thread simply to bootstrap a repository.
-7. If T3 cannot allocate the required workspace, report that boundary; do not fall back to shell
-   worktrees or session-move substitutes. With a ready workspace go to Stage 5: Execute.
+1. If the request gives a checkout, look at its origin, branch, worktrees and uncommitted changes.
+   Use it where it is; do not move it to fit a naming preference.
+2. Otherwise resolve the owner and repository. A bare name is looked up as My setup says. An
+   owner or host the user named is used exactly. A network or login failure is not proof that a
+   repository does not exist: report it at Stage 6.
+3. Look for an existing clone only at the paths My setup names. The directory name `main` does
+   not prove the checked-out branch is `main`; read the branch.
+4. A request only to locate goes to Stage 6. A clone or fork that does not exist yet goes to
+   Stage 3. An existing checkout goes to Stage 4.
 
-## Stage 5: Execute
+## Stage 3: Clone or fork
 
-1. Perform only the assigned Git operation. Before a commit, inspect the complete owned diff, run
-   applicable changed-file checks, and stage exact paths. Keep unrelated staged changes out.
-2. Commit only when assigned under Publication policy. A coordinator/source-only handoff preserves
-   validated changes without publication. A no-commit/no-push instruction overrides personal defaults.
-3. Before an authorized ordinary push, verify the exact remote, destination branch, local ancestry,
-   and tracking. Fetch/reconcile target movement without discarding concurrent work. Never force,
-   rewrite, prune, or merge into `main` without its own explicit scope.
-4. A failed/uncertain remote write is reconciled by reading the remote before retrying. Keep retained
-   source, branch, and original error; do not replace the checkout to hide failure.
-5. Continue to Stage 6: Report.
+1. Check the destination is empty or already this repository. Leave anything else there alone
+   and report the collision.
+2. Clone with T3 `t3_project_clone`, passing the remote and the destination. If T3 cannot do it,
+   say so; do not make the checkout in the shell or in a delegate's brief.
+3. Fork only when the user asked for a fork. A clone request does not authorize a fork, a
+   migration, a mirror, a visibility change, a push or a PR.
+4. Check the origin, the default branch and tracking. A fork of someone else's repository keeps
+   their repository as `upstream`. A personal repository has one writable `origin`, and its
+   mirrors run on the server.
+5. Registering a T3 project is separate: use `t3_project_create` only when asked to set the
+   project up. It does not move this thread into that project or start a new thread.
+
+## Stage 4: Pick the workspace and branch
+
+1. Read `git status`, the branch and its upstream, and `git worktree list --porcelain`. In T3
+   Code, call `t3_worktree_status` before asking for a worktree. A repository you reach by an
+   absolute path is not the one this thread is bound to.
+2. Keep working in an existing task checkout. Locating, cloning, committing and pushing do not
+   need a new branch.
+3. For a new branch, follow the repository's convention, and My setup for a personal repository.
+   If neither says what to branch from, ask; do not invent a `main` or `dev`, and do not move a
+   branch another checkout is using.
+4. To move this thread onto a new branch in its own project, use `t3_worktree_handoff` as the
+   last call of the turn, with a continuation prompt. It ends the live session.
+5. Several agents writing to one repository at once each get a `delegate_task` with
+   `isolation:'worktree'`. T3 cuts each checkout from your last commit, so commit first.
+   `../subagents/SKILL.md` covers delegation.
+6. A new top-level thread is launched with `t3_thread_launch`, with the project and an explicit
+   `workspaceStrategy`, when the user asks for a thread or a skill the user invoked calls for one.
+7. If T3 cannot provide the workspace, report that. A shell `git worktree add` does not bind a
+   T3 thread to it.
+
+## Stage 5: Do the operation
+
+1. Do the operation that was asked for and nothing beside it.
+2. Before a commit, read the whole diff you are about to commit, run the checks that apply to
+   the changed files, and stage exact paths so changes that are not yours stay out.
+3. Commit when the task includes committing; Publication below says when it does. The message
+   uses conventional commits (`feat:`, `fix:`, `chore:` and so on) unless the repository uses
+   another format. No model or agent tool appears as a co-author or in any trailer.
+4. Before a push, check the remote, the destination branch and that your branch contains the
+   remote's commits. If the remote moved, fetch and rebase or merge; keep the other person's
+   work. Force-pushing, rewriting history, pruning and merging into the default branch each need
+   to be asked for.
+5. If a remote write fails or times out, read the remote to see whether it landed before trying
+   again.
 
 ## Stage 6: Report
 
-1. Verify actual checkout, branch/base, upstream, and task-owned status. For publication compare the
-   exact remote head to the accepted local SHA; an installed update or PR is a separate outcome.
-2. State host, absolute checkout, branch/ref, requested result, performed checks, and pending effects.
-   Missing tracking is expected for local-only work. Do not demand unrelated global cleanliness.
+Read back the checkout, branch, base and upstream. After a push, compare the remote head with
+your local SHA. Report the host, the absolute checkout path, the branch, what was done, the
+checks you ran and what is still pending. A local-only branch has no upstream, and that is fine.
 
-# Publication policy
+# Publication
 
-- A clone or worktree request authorizes local preparation only, not branch publication. Push only
-  under an explicit delivery request or an applicable established repository convention.
-- In an existing personal `dev` checkout, requested implementation normally includes owned commits
-  and ordinary pushes unless local-only, no-push, or coordinator ownership narrows the task.
-- Requested chezmoi configuration normally includes owned commits/pushes on `main` and targeted apply;
-  `edit-config` owns the precise lifecycle and handoff exceptions.
-- Source implementation is distinct from PR/issue/comment publication, merging, hosting migration,
-  visibility changes, deployment, and installing into live profiles. Honor each task's actual scope.
-- Preserve histories, unrelated changes, worktrees, and active user processes. Approved filesystem
-  removals use recoverable `trash`; keep Git configuration changes repo-local.
-- Use canonical origins with configured transport rewrites intact. Long jobs use owned retained
-  execution with bounded waits and actual output/exit status; never kill by a broad name pattern.
+- A clone or worktree request covers local preparation only. Push when the request asks for
+  delivery, or when the repository's convention or My setup says pushing is part of the work.
+- A "no commit", "no push" or "local only" instruction always wins.
+- Implementing a change does not include opening a PR, filing an issue, posting a comment,
+  merging, migrating hosting, changing visibility, deploying, or installing into a live profile.
+  Each is its own request.
+- Delete files with `trash`, which can be undone. Keep Git configuration changes repo-local.
+- Run a command you expect to take more than about 15 seconds in its own detached tmux session,
+  and read its output and exit status when it finishes.
+
+# My setup
+
+Edit these in plain words. They are one person's conventions; replace them with yours.
+
+- My repositories live on Forgejo at `git.quinntyx.dev` under `quinntyx`. That is the one
+  writable `origin`: `https://git.quinntyx.dev/quinntyx/<repo>.git`.
+- Each one is mirrored by the Forgejo server to GitHub at `Quinntyx/<repo>`, with the same
+  visibility. The mirror address is `ssh://github.com/Quinntyx/<repo>.git`.
+- A bare repository name means `quinntyx/<repo>` on Forgejo first, then `Quinntyx/<repo>` on
+  GitHub if Forgejo definitely has no such repository.
+- My clones live at `~/docs/src/<repo>/main`. A clone of someone else's repository lives at
+  `~/docs/src/<owner>_<repo>/main`.
+- My repositories have `main` and `dev`. Feature branches are named `feat-<description>` and cut
+  from `dev`.
+- In a `dev` checkout of one of my repositories, a request to implement something includes
+  committing and pushing it. A requested chezmoi change includes commit, push to `main` and a
+  targeted apply; `../edit-config/SKILL.md` owns that.
+- The Forgejo CLI is `fj`, logged in as `quinntyx`. Its API token is in
+  `~/.local/share/forgejo-cli/keys.json` at `hosts["git.quinntyx.dev"].token`. The API base is
+  `https://git.quinntyx.dev/api/v1`. `gh` is logged in as `Quinntyx`.
+- The Forgejo server runs as the `forgejo` container defined in `~/docs/host/forgejo`, with its
+  data mounted at `/data`.
+- Some machines reach Forgejo through a Git URL rewrite to GitHub. Leave such a rewrite in place.

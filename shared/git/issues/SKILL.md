@@ -10,146 +10,116 @@ metadata:
 
 ## Input Contract
 
-- A report, question, issue URL, reproducible failure, or feature request and task context.
-- Repository and discussion access, plus authenticated host tooling for authorized writes.
-- A direct instruction to file, open, create, submit, or post an issue authorizes that specified
-  publication. A direct instruction to reply or respond authorizes a response to that discussion.
-- Asking for a draft, wording, review, explanation, or how to file produces an unpublished artifact.
-  A statement of future desire is informational unless paired with an action instruction. An
-  explicit approval gate governs publication; general implementation authority is distinct.
-- Existing issue edits, labels, closures, and comment deletion need the corresponding user scope
-  and host permissions. New-issue scope permits relevant existing metadata when warranted.
+- A report, a question, an issue URL, a failure you can reproduce, or a feature request, in any
+  repository, whoever owns it.
+- Read access to the repository and its discussions, and a logged-in client for any write.
+- What the request allows:
+  - "File", "open", "create", "submit" or "post" an issue means publish it.
+  - "Reply" or "respond" means post that reply.
+  - "Draft", "word", "review", "explain" or "how do I file" means return text without
+    publishing. So does "I'd like to file this someday".
+  - Editing an existing issue, changing labels, closing, and deleting comments each have to be
+    asked for. Filing a new issue includes setting the labels it warrants.
 
 ## Output Contract
 
-- A draft or verified published artifact in the exact intended repository and discussion.
-- A neutral, readable, symptom-specific title and concise body satisfying the repository template.
-- Bug reports contain minimal reproducible evidence, expected/actual behavior, and relevant
-  environment/version context. Incomplete reproduction and uncertain diagnosis are explicit.
-- Responses address the whole discussion and add evidence or a useful answer rather than noise.
-- Duplicate findings lead to an existing-issue reference or an authorized useful update.
+- A draft, or a published issue or reply read back from the host, in the right repository.
+- A neutral title that names the symptom, and a short body that fills in the repository's
+  template.
+- For a bug: the smallest reproduction, expected and actual behavior, and the version and
+  environment. An unfinished reproduction or an uncertain diagnosis is labelled as such.
+- For a duplicate: a pointer to the existing issue, and a comment there if you have new evidence
+  and were asked to post.
 
 # Entrypoint
 
-## Stage 1: Establish the issue operation
+## Stage 1: Pin down the operation
 
-1. Identify creation, response, revision, or research; record publication state from the Input
-   Contract. Ambiguity retains draft-only scope; an explicit hosted action records its exact
-   authorized scope. Both paths continue Stage 1 at step 2.
-2. Read the repository and discussion context established by the task. Record the issue operation,
-   existing issue identity when applicable, available evidence, and requested deliverable.
-3. Check access and permissions for that operation. Read access proceeds to Stage 2: Read the
-   repository; authenticated write access retains the authorized hosted scope there. Unavailable
-   access ends at Stage 6: Verify and report with the preserved report and exact capability limit.
+Decide whether this is a new issue, a reply, a revision or research, and whether it is published.
+If the request is ambiguous, keep it as a draft. Check you can read the repository, and write to
+it if you will need to. If you cannot, go to Stage 6 with the draft and say what access is
+missing.
 
 ## Stage 2: Read the repository
 
-1. Read repository instructions, contribution guidelines, security policy, issue templates/forms,
-   issue configuration, and relevant documentation. Respect the stated support channel and the
-   template's required fields. Sensitive vulnerabilities follow the project's private disclosure
-   channel and end with a private draft/handoff at Stage 6: Verify and report.
-2. For existing issues, read the entire current body and all paginated comments, timeline events,
-   and relevant linked discussions or PR reviews. For GitHub, use
-   `gh issue view "$number" --repo "$repo" --json title,body,author,labels,state,url`,
-   `gh api --paginate "repos/$repo/issues/$number/comments?per_page=100"`, and
-   `gh api --paginate "repos/$repo/issues/$number/timeline?per_page=100"`.
-   Linked PRs require their review comments, reviews, and unresolved threads as relevant.
-3. Preserve timestamps, speaker attribution, maintainer answers, previous repro attempts, and
-   later corrections. A truncated display or summary is a locator; retrieve the remaining pages
-   before drawing a conclusion. Unavailable discussion ends with that research limit at Stage 6:
-   Verify and report; complete discussion proceeds at step 4.
-4. Inspect repository labels and supported issue types using the actual host schema. For GitHub
-   labels use `gh api --paginate "repos/$repo/labels?per_page=100"`. Observe current title/body
-   conventions. Proceed to Stage 3: Verify evidence and duplicates.
+1. Read the contribution guidelines, the security policy, the issue templates and forms and their
+   configuration. Use the support channel the project names and fill in every field its template
+   requires. A security vulnerability goes through the project's private disclosure channel:
+   write a private draft and go to Stage 6.
+2. For an existing issue, read the whole body and every page of comments and timeline. On GitHub:
+   - `gh issue view "$number" --repo "$repo" --json title,body,author,labels,state,url`
+   - `gh api --paginate "repos/$repo/issues/$number/comments?per_page=100"`
+   - `gh api --paginate "repos/$repo/issues/$number/timeline?per_page=100"`
 
-## Stage 3: Verify evidence and duplicates
+   Read the reviews and open threads of any linked PR that bears on it. Note who said what and
+   when, what maintainers answered, and what was later corrected. A truncated view only tells
+   you where the discussion is; fetch the rest before concluding anything.
+3. List the repository's labels (`gh api --paginate "repos/$repo/labels?per_page=100"`) and issue
+   types, and look at how recent issues are titled and written.
 
-1. Search open and closed issues and relevant PRs using symptom terms, errors, component names,
-   and mechanisms. `gh issue list --repo "$repo" --state all --search "$query"` locates
-   candidates; it is not an exhaustive inventory. For an all-open sweep, paginate
-   `gh api --paginate "repos/$repo/issues?state=open&per_page=100"` and separate PR records.
-2. Read candidate issue bodies and full discussions through Stage 2: Read the repository. Return
-   here once candidates are understood. Classify duplicates by matching evidence and failure
-   mechanism; similar wording alone is insufficient. Distinct causes retain distinct reports.
-3. Establish a minimal safe reproduction: exact version or commit, necessary environment and
-   inputs, runnable steps, expected result, observed result, and the smallest relevant trace or
-   artifact. Execute it where feasible within scope, preserving active user jobs and worktrees.
-   Use source links accessible to the intended readers or commit-pinned artifacts; keep credentials,
-   private session material, and unrelated logs private.
-4. Separate observed behavior from a likely cause and a proposed fix. Verify source claims against
-   current code and line-stable links. An unexecuted reproduction remains marked unexecuted.
-   Missing essential evidence produces a focused question or an explicitly incomplete draft;
-   proceed to Stage 4: Compose with the known facts rather than inventing technical detail.
-5. An established duplicate proceeds to Stage 4: Compose as an existing-issue reference or useful
-   response. New useful evidence may warrant an authorized comment; an already recorded report
-   ends with its reference at Stage 6: Verify and report. A distinct report proceeds to Stage 4:
-   Compose. Preserve any user-specified issue count or evaluation scope as given.
+## Stage 3: Check the evidence and look for duplicates
 
-## Stage 4: Compose
+1. Search open and closed issues and PRs for the symptom, the error text, the component and the
+   mechanism. `gh issue list --repo "$repo" --state all --search "$query"` finds candidates but
+   is not a complete list. To sweep every open issue, paginate
+   `gh api --paginate "repos/$repo/issues?state=open&per_page=100"` and drop the PR records.
+2. Read each candidate in full, as in Stage 2. It is a duplicate when the evidence and the failure
+   mechanism match. Similar wording is not enough, and two causes get two reports.
+3. Build the smallest reproduction: the exact version or commit, the environment and inputs, steps
+   that run, the expected result, the observed result, and the shortest trace that shows it. Run
+   it if you can. Link sources the readers can open, pinned to a commit. Keep credentials, private
+   session material and unrelated logs out.
+4. Keep what you observed apart from the likely cause and from a proposed fix. Check claims about
+   the source against the current code. A reproduction you did not run is marked as not run. If
+   essential evidence is missing, ask for it or write the draft as explicitly incomplete; do not
+   fill the gap with invented detail.
+5. A duplicate that already records everything you have goes to Stage 6 with its link. A
+   duplicate you can add evidence to, and a new report, go to Stage 4.
 
-1. Write a neutral sentence-case title specific enough to understand without opening the body.
-   Bug titles describe the symptom; enhancement titles name the desired capability. Repository
-   conventions determine required prefixes and vocabulary. Keep speculative diagnosis out of titles.
-2. Follow the actual template. Bug bodies lead with the concrete failure and triggering conditions,
-   then minimal reproduction, expected/actual behavior, relevant version/environment, and concise
-   evidence. Feature bodies explain the problem, desired outcome, scope, and useful alternatives.
-   Short reports remain short when the template and evidence permit.
-3. Use plain human-readable prose and precise project terminology. Keep code, traces, and source
-   locations only where they materially enable reproduction or support a technical claim. Write
-   for maintainers rather than narrating agent activity, grading drafts, or packaging self-review.
-   Attribute quotes faithfully; incorporate the user's intent without dumping private dialogue.
-4. Responses first answer the actual question or correction, then supply new evidence, the
-   resulting finding, and any remaining uncertainty. Match a requested minimal response format
-   when it conveys the required evidence. Prefer a stable artifact link to a large pasted log.
-5. For authorized revisions to the user's own agent-drafted issue, improve the original title/body
-   in place and preserve meaningful human discussion. Self-review findings become corrections in
-   the original report rather than bot-to-bot review comments. Other authors retain ownership of
-   their text; a response carries the correction. Comment deletion remains a separate explicit act.
-6. Select existing labels/types only when supported by the report, repo conventions, and scope.
-   Keep metadata sparse and verify automation-sensitive effects. Derive labels and disclosure
-   conventions from the repository and task context; answer provenance honestly.
-7. A grounded authorized hosted action proceeds to Stage 5: Publish or update. A requested draft,
-   material unresolved evidence, or unclear authority ends with the usable artifact and the exact
-   pending decision at Stage 6: Verify and report. Readiness is evidence-based rather than an
-   invented confidence percentage or a compulsory interrogation loop.
+## Stage 4: Write it
+
+1. Write a neutral sentence-case title that can be understood without opening the issue. A bug
+   title describes the symptom; a feature title names the capability wanted. Use the prefixes and
+   vocabulary the repository uses. Keep a guessed diagnosis out of the title.
+2. Follow the template. A bug body starts with the failure and what triggers it, then the
+   reproduction, expected and actual behavior, version and environment, and the evidence. A
+   feature body gives the problem, the outcome wanted, the scope and the alternatives. A short
+   report stays short.
+3. Write for the maintainers in plain prose and the project's own terms. Include code, traces and
+   source locations where they let someone reproduce the problem or back a claim. Leave out what
+   the agent did and any private conversation.
+4. A reply answers the question or correction first, then gives the new evidence, what it shows
+   and what is still uncertain. Link a stable artifact in place of a long pasted log.
+5. To revise an issue the user's own agent drafted, fix the title and body in place and keep the
+   human discussion. Text someone else wrote stays theirs: put a correction in a reply.
+6. Add only existing labels and types that the report supports, and few of them. Some labels
+   trigger automation; check before adding one.
+7. If the request publishes and the evidence is in hand, go to Stage 5. A draft, missing evidence
+   or unclear permission goes to Stage 6 with the text and the open question.
 
 ## Stage 5: Publish or update
 
-1. Re-read the exact destination and current issue before writing. Recheck duplicates for creation
-   and preserve concurrent human edits for revisions. A newly found duplicate returns to Stage 4:
-   Compose as a reference/response; an unchanged target continues here.
-2. For GitHub creation, store the reviewed body in a private local file and run
-   `gh issue create --repo "$repo" --title "$title" --body-file "$body_file"`, adding only
-   warranted existing `--label` values. Use the installed API for supported issue types when
-   authorized; required form fields remain satisfied in the resulting body.
-3. For GitHub responses use
-   `gh issue comment "$number" --repo "$repo" --body-file "$body_file"`.
-   For owned issue revisions use `gh issue edit "$number" --repo "$repo" --title "$title"`
-   with `--body-file "$body_file"`. For an existing-comment revision, verify its ID and ownership,
-   then target that ID explicitly. Retain local draft text when a write fails.
-4. For Forgejo, use the installed CLI or `POST /repos/{owner}/{repo}/issues` for creation,
-   `POST /repos/{owner}/{repo}/issues/{number}/comments` for replies, and
-   `PATCH /repos/{owner}/{repo}/issues/{number}` for owned issue revisions. Send reviewed
-   title/body and repository label IDs through the host's configured authenticated client. Resolve
-   the API base and credentials through that client; retain credentials in memory and redact logs.
-5. A successful write proceeds to Stage 6: Verify and report. A timeout or uncertain failure first
-   re-reads recent destination state for the accepted write. Retry only a proven missing write;
-   a permission or API failure proceeds to Stage 6 with its retained draft and partial state.
+1. Read the destination and the issue again. For a new issue, repeat the duplicate search; a
+   duplicate found now goes back to Stage 4 as a reply. For a revision, keep edits people made
+   meanwhile.
+2. Create on GitHub from a file: `gh issue create --repo "$repo" --title "$title" --body-file
+   "$body_file"`, with `--label` for each label that is warranted. Issue types go through the
+   API where the repository supports them.
+3. Reply on GitHub with `gh issue comment "$number" --repo "$repo" --body-file "$body_file"`.
+   Revise an issue with `gh issue edit "$number" --repo "$repo" --title "$title" --body-file
+   "$body_file"`. To revise a comment, confirm its ID and that it is yours, and target that ID.
+4. On Forgejo use `fj`, or `POST /repos/{owner}/{repo}/issues` to create,
+   `POST /repos/{owner}/{repo}/issues/{number}/comments` to reply, and
+   `PATCH /repos/{owner}/{repo}/issues/{number}` to revise, sending label IDs. Use the host's
+   logged-in client and keep tokens out of commands and output.
+5. If a write fails or times out, read the destination to see whether it landed before trying
+   again, and keep the draft text. A permission or API error goes to Stage 6 with the draft.
 
-## Stage 6: Verify and report
+## Stage 6: Check and report
 
-1. For a published or edited artifact, re-read it from the host. Verify owner/repo, number, URL,
-   exact title/body or response, metadata, and author. Confirm an issue revision appears in the
-   owned original body, while an authorized response appears as its intended comment.
-2. Report the publication URL, concise result, and material evidence/check limits. Draft-only work
-   returns the complete usable title/body or reply text and says it remains unpublished. A proven
-   duplicate returns the existing URL and whether any authorized evidence update was posted.
+For something published or edited, read it back from the host: repository, number, URL, title,
+body or reply, labels and author. Report the URL and a line on the result, with the limits of the
+evidence. For a draft, return the full title and body or reply and say it is unpublished. For a
+duplicate, return the existing URL and whether you posted to it.
 
-# Evidence and execution conventions
-
-- Bind and quote command variables from verified values. Every write explicitly names its
-  destination. Keep tokens in memory and redact output.
-- Infer intent and technical context from evidence first; ask only for a material missing choice.
-  Issue prose is concise while private research retains diagnostic depth.
-- Use bounded remote waits and dedicated detached tmux jobs for commands expected to exceed
-  10–15 seconds. Retain native output and exit status while preserving active user panes.
+Run a command you expect to take more than about 15 seconds in its own detached tmux session.

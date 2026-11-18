@@ -10,86 +10,80 @@ metadata:
 
 ## Input Contract
 
-- A requested PR action, repository or PR URL, source branch/diff, and relevant task context.
-- Git and authenticated `gh` for GitHub or `fj`/Forgejo API access for Forgejo.
-- A direct request to open/create a PR authorizes that PR publication. A request to draft or write
-  PR text produces an unpublished draft; opening a draft PR is an explicit hosted operation.
-- A direct request to reply authorizes that response. Implementing a change alone authorizes
-  neither PR creation nor review-comment publication. Merge scope is a separate decision.
+- What to do with a PR, and the repository or PR URL, the branch or diff, and the task it serves.
+  The PR may be anyone's, in anyone's repository.
+- Git, and `gh` for GitHub or `fj` or the Forgejo API for Forgejo, logged in.
+- What the request allows:
+  - "Open" or "create" a PR means publish it.
+  - "Draft" or "write" the PR text means return the text without publishing. Opening a draft PR
+    on the host is a publication and has to be asked for.
+  - "Reply" means post that reply.
+  - Implementing a change does not include opening a PR or posting review comments, and merging
+    is always a separate request.
 
 ## Output Contract
 
-- A concise, problem-first title/body grounded in the complete diff, verification, and limitations.
-- An explicit destination repository, source/head, base, draft state, and publication result.
-- Authorized review follow-ups update the PR timeline with the finding, change, commit references,
-  relevant checks, and remaining limitations, understandable without the private agent conversation.
+- A title and body that start from the problem and match the whole diff, what was verified and
+  what was not.
+- The destination repository, head, base and draft state, and whether it was published.
+- For review follow-up: a reply on the PR giving the finding, the change, the commits, the
+  checks and what is still open, readable by someone who never saw the agent conversation.
 
 # Entrypoint
 
-## Stage 1: Establish the PR operation
+## Stage 1: Pin down the operation
 
-1. Resolve and record the requested artifact and publication state. Draft-only and ambiguous
-   scope retain an unpublished artifact for Stage 5: Verify and report. An explicit hosted
-   instruction records its exact scope for Stage 4: Publish or revise. Continue Stage 1 at step 2.
-2. Read the task's repository, branch and PR context. Inspect the existing PR when supplied and
-   verify its base/head identities against the actual refs. Retain the context's repository and
-   contribution policy throughout the requested operation.
-3. Establish the base, head and draft state from the request, existing PR and repository policy.
-   Preserve explicit choices and established branch relationships. A material unresolved ref ends
-   with the precise pending choice; established refs continue at step 4.
-4. Read contribution instructions, PR templates, existing PR state, and every review thread and
-   timeline page. For GitHub use paginated issue comments, pull review comments, reviews, and
-   GraphQL review threads as needed; a short summary is a locator rather than the full discussion.
-   Proceed to Stage 2: Inspect the change.
+1. Decide what is being produced and whether it is published. If the request is ambiguous, keep
+   it as an unpublished draft.
+2. Read the repository, the branch and any existing PR, and check the PR's base and head against
+   the real refs. Follow that repository's contribution rules, whoever owns it.
+3. Settle the base, head and draft state from the request, the existing PR and the repository's
+   rules. If a ref that matters cannot be settled, stop and ask for that one choice.
+4. Read the contribution instructions, the PR template, and every page of review threads and
+   timeline. On GitHub that means issue comments, pull review comments, reviews and the GraphQL
+   review threads, paginated. A summary only tells you where the discussion is.
 
-## Stage 2: Inspect the change
+## Stage 2: Read the change
 
-1. Inspect the full base-to-head diff, not only commit subjects. Use
-   `git diff "$base...$head"`, the relevant commits, and repository terms from scoped `rg`.
-   Account for all behavior changes, flags, defaults, signature changes, and control flow.
-2. Establish the real failure mode or motivation from task evidence, discussion, and observed
-   behavior. Infer only what the evidence supports. A material missing user-intent detail requires
-   one focused question before resuming Stage 2; otherwise continue here.
-3. Run the smallest relevant checks for the change and inspect the actual results. Separate
-   observed behavior, inferred mechanism, assumptions, and unverified claims. Preserve existing
-   unrelated edits and runtime jobs.
-4. For requested review fixes, use the authorized checkout or T3-managed writer allocation from
-   the parent Git procedure. Follow commit/push/integration policy within actual task effects.
-   Keep unrelated work and concurrent contributors' checkouts intact.
-5. Once evidence is sufficient, requested splitting goes to Stage 2A: Split coherent changes;
-   other work goes to Stage 3: Write the artifact. Check failures remain explicit findings, repaired
-   within scope or reported as unresolved.
+1. Read the full diff with `git diff "$base...$head"`, not the commit subjects. Account for every
+   behavior change, flag, default, signature change and control-flow change.
+2. Work out why the change exists from the task, the discussion and what the code does. If the
+   intent is missing and matters, ask one question.
+3. Run the smallest checks that cover the change and read their output. Keep apart what you
+   observed, what you infer and what nobody verified.
+4. Review fixes are made in the checkout the task gave you, under the commit and push rules of
+   `../SKILL.md`.
+5. A request to split goes to Stage 2A. Everything else goes to Stage 3. A failing check is
+   repaired if that is in scope, and reported if not.
 
-## Stage 2A: Split coherent changes
+## Stage 2A: Split
 
-1. Partition the complete diff by independently useful outcomes, not arbitrary file/commit counts.
-   Identify shared prerequisites and whether separate PRs can be independent or need an explicit
-   stack. Retain requirements, tests, and base/head relationships for each part.
-2. Draft-only or planning scope produces a split plan and proposed PR text, then goes to Stage 5:
-   Verify and report. A split request does not silently authorize published-history rewrites or
-   force pushes. Resolve those effects explicitly if the requested result requires them.
-3. For authorized implementation, retain the original branch/SHA and use verified T3-allocated
-   workspaces. Apply only each selected change with its tests; preserve unrelated/concurrent work.
-   Do not create child worktrees in the shell or relocate the existing branch.
-4. Verify each part on its actual base, check the composed final result against the original
-   requested behavior, and account for omitted/duplicated hunks and dependencies. Verify scope and
-   tests separately for each proposed PR rather than assuming a green combined diff proves each.
-5. For each accepted part, repeat Stages 3 through 5 with its own base/head, artifact, and publication
-   authority. Return a coherent dependency/order summary; retain incomplete parts honestly.
+1. Divide the whole diff by outcomes that are each useful alone, not by file or commit count.
+   Find what the parts share, and whether they can be independent PRs or need a stack.
+2. A request for a plan or a draft returns the split plan and the proposed PR texts and goes to
+   Stage 5. Splitting does not include rewriting published history or force-pushing unless that
+   was asked for.
+3. To carry the split out, keep the original branch and SHA, and build each part in a workspace
+   T3 allocated.
+4. Check each part on its own base, with its own tests. Then check that the parts together still
+   do what the original did, with no hunk dropped or duplicated.
+5. Run Stages 3 to 5 for each part with its own base, head and text, and report the order they
+   depend on each other in.
 
-## Stage 3: Write the artifact
+## Stage 3: Write it
 
-1. Follow the repository template and exact vocabulary. Write a plain sentence-case title naming
-   the concrete symptom or result. Use type prefixes only where repository convention requires.
-2. Lead the body with what breaks, when, and why it matters. Follow with the mechanism and scope,
-   then verification and meaningful limitations or assumptions. Keep it short, usually two to four
-   paragraphs; parallel changes may use bullets. Preserve required template sections.
-3. State partial behavior and unverified claims accurately. Claims of semantic equivalence or
-   unchanged behavior require evidence. Keep explanations about the change rather than private
-   workflow, PR packaging justification, or agent execution details.
-4. For review responses, answer the actual concern directly. State the finding, resulting change
-   with commit references, verification, and open limitation in a short self-contained response.
-   Attribute quoted observations correctly and distinguish evidence from speculation.
+1. Follow the repository's template and its vocabulary. The title follows the repository's commit
+   convention. Where PRs are squash-merged under conventional commits, the title is the
+   conventional subject line (`fix: stop the cache evicting pinned entries`), because it becomes
+   the commit. Otherwise write a plain sentence-case title naming the symptom or the result.
+2. Start the body with what breaks, when, and why it matters. Then the mechanism and the scope,
+   then what was verified and the limits that matter. Two to four paragraphs is usual; use
+   bullets for parallel changes; keep the template's required sections.
+3. Say what is partial and what is unverified. Claim that behavior is unchanged only with
+   evidence. The body is about the change: leave out how the work was organized and what the
+   agent did along the way.
+4. A review reply answers the concern first, then gives the finding, the change with its commit
+   references, the check, and what is still open. Attribute quotations correctly.
 5. For a PR an agent built, end the description with one line naming the models that did the
    work, and the review if there was one: "Built with Opus 5.5 orchestrating DeepSeek V4.1
    Flash, reviewed by a council of 6.1 Sol, 6.2 Sol, Opus 5.5 and GLM 5.3 with a final score of
@@ -97,35 +91,26 @@ metadata:
    scores. This line is the only mention of a model or agent tool: no model appears as a
    co-author or contributor, and no "Generated with" line, tool badge or other attribution goes
    in the description or in a commit trailer.
-6. An authorized hosted operation proceeds to Stage 4: Publish or revise. Draft-only or unresolved
-   publication scope proceeds to Stage 5: Verify and report with the unpublished artifact.
+6. If the request publishes, go to Stage 4. A draft goes to Stage 5.
 
 ## Stage 4: Publish or revise
 
-1. Re-read the current PR and comments to preserve concurrent human edits and avoid duplicates.
-   Verify exact repository, base, head, and requested draft/ready state before writing.
-2. For GitHub creation, bind the reviewed text to local files and use `gh pr create --repo "$repo"`
-   with explicit `--base "$base"`, `--head "$head"`, `--title "$title"`, and
-   `--body-file "$body_file"`. Include `--draft` only for a requested hosted draft PR.
-   Forgejo creation uses the installed CLI or `POST /repos/{owner}/{repo}/pulls` with explicit
-   head/base and reviewed title/body. Verify the installed host's draft mechanism before using it.
-3. For revisions, edit the existing title/body rather than creating another PR. For a direct
-   review reply, publish the reviewed response to the correct thread or timeline. Authorized
-   follow-up fixes on an open PR include a concise timeline response when review-response scope
-   includes publication; draft-only scope returns the response text instead.
-4. Use `gh pr comment "$number" --repo "$repo" --body-file "$body_file"` for GitHub timeline
-   comments. For Forgejo resolution failures, use
-   `POST /repos/{owner}/{repo}/issues/{number}/comments`; edit an owned comment with
-   `PATCH /repos/{owner}/{repo}/issues/comments/{id}`. Use the host's configured authenticated
-   client and API base, keep credentials in memory, and redact them from output.
-5. A successful write proceeds to Stage 5: Verify and report. A failed or timed-out write first
-   re-reads the destination for an accepted write, then reports its actual state at Stage 5.
-   Retry only a proven missing write, preserving unrelated edits and existing discussion.
+1. Read the PR and its comments again, so you keep edits people made meanwhile and do not post a
+   duplicate. Check the repository, base, head and draft state once more.
+2. Create on GitHub from files: `gh pr create --repo "$repo" --base "$base" --head "$head"
+   --title "$title" --body-file "$body_file"`, adding `--draft` only when a draft PR was asked
+   for. On Forgejo use `fj` or `POST /repos/{owner}/{repo}/pulls` with explicit head and base;
+   check how that host marks a draft before relying on it.
+3. To revise, edit the existing title and body; do not open a second PR. Post a review reply to
+   the thread it answers.
+4. Timeline comments on GitHub: `gh pr comment "$number" --repo "$repo" --body-file
+   "$body_file"`. On Forgejo: `POST /repos/{owner}/{repo}/issues/{number}/comments`, and
+   `PATCH /repos/{owner}/{repo}/issues/comments/{id}` to edit a comment you posted. Use the
+   host's logged-in client and keep tokens out of commands and output.
+5. If a write fails or times out, read the PR to see whether it landed before trying again.
 
-## Stage 5: Verify and report
+## Stage 5: Check and report
 
-1. For published artifacts, re-read the exact PR or comment and verify destination, base/head,
-   title/body, draft state, and relevant commit/check links. Report incomplete checks honestly.
-2. Return the URL and concise outcome for publication, or the complete usable text for a draft.
-   Include the verified tests and material unresolved limit. Local working-tree bookkeeping belongs
-   in the private task report, while the PR artifact serves repository readers.
+For something published, read it back from the host: repository, base, head, title, body and
+draft state. Return the URL and a line on the outcome. For a draft, return the full text and say
+it is unpublished. Either way name the checks that ran and what is still unverified.

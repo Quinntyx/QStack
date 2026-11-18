@@ -1,8 +1,9 @@
 ---
 name: runtime-verification
 description: "Use when fixing bugs, reviewing runtime correctness, investigating repeated failures,
-  or verifying code changes against real user flows. Supplies evidence tiers and permissions; the
-  harness-verification skill supplies the exercise recipe."
+  or verifying code changes against real user flows. Decides how much evidence a change needs and
+  what you may use to get it; the harness-verification skill supplies how to exercise the change
+  in this harness."
 metadata:
   type: procedure
 ---
@@ -11,111 +12,101 @@ metadata:
 
 ## Input Contract
 
-- A symptom, requested change, review target, or expected user-visible behavior.
-- Repository or runtime context and the user's permitted effects.
-- Available logs, reproduction inputs, running instances, and project validation commands.
+- A symptom, a change to verify, or a behavior the user expects to see.
+- The repository or running system, and what the task permits you to do to it.
 
 ## Output Contract
 
-- Observed runtime behavior and supported causal explanations for identified defects, or an
-  explicit execution limitation. A clean review records its actual coverage and findings.
-- For authorized implementation, a focused repair verified against the original user flow.
-- For review, actionable findings with affected paths, conditions, impact, and evidence.
-- A concise final account separating observed behavior, inference, and remaining uncertainty.
+- What you observed the software do, and for a defect the cause the evidence supports. If you
+  could not run something, say which part.
+- For a fix: the repair, checked against the flow the user originally reported.
+- A report that keeps what you observed apart from what you infer.
 
 # Entrypoint
 
-## Stage 1: Bind the target and evidence budget
+## Stage 1: Choose the tier
 
-1. Read the request, repository instructions and existing run/verify guidance. Resolve the actual
-   checkout, build, process, configuration and affected user journey; preserve unrelated work.
-2. Select a tier below from its objective triggers. Record the tier, decisive check and permitted
-   effects briefly. Repository checks remain a floor; browser permission remains a separate gate.
-3. For investigation, retain a failing input and trace the first divergence before proposing a
-   repair. A review stays read-only; an authorized repair changes the smallest owning component
-   and adds a focused regression check when useful. Use `../subagents/SKILL.md` if delegating.
-4. Continue to Stage 2 with the target, acceptance condition and execution boundaries bound.
+Read the request and the repository's own instructions for running and checking it. Work out
+which build, process and configuration are involved and which user flow is affected.
+
+Pick a tier from the ladder below by its triggers. The repository's required checks apply at
+every tier.
+
+When investigating a failure, keep an input that reproduces it and trace to the first point where
+behavior departs from what was intended before proposing a repair. A review changes nothing. A
+fix changes the smallest component that owns the wrong behavior.
 
 ## Stage 2: Exercise the change
 
-1. Load the `harness-verification` skill and follow its recipe for exercising a changed runtime
-   surface in this harness. Supply the target/revision, selected tier, existing project checks
-   and permitted capture route. That skill owns the exercise method; this one owns the evidence
-   budget and permissions. Reuse its evidence rather than running a second generic workflow.
-2. Read-only or source-only work uses existing instructions/checks without generating new project
-   guidance. A docs/test-only diff needs its applicable checks, not a fabricated runtime journey.
-3. If that recipe cannot honor these boundaries, exercise the smallest existing project
-   entrypoint directly and record the limitation. No replacement plugin or capture stack is
-   implied. Use actual process/network/GPU execution for claims dependent on that boundary.
-4. Check the loaded build/configuration, original acceptance condition and applicable repository
-   checks. A failed check returns to diagnosis, with experiments bounded by the ladder below;
-   a passing or explicitly blocked check goes to Stage 3.
+Load the `harness-verification` skill and follow it, giving it the target, the tier and the
+checks the project already has. If its recipe cannot run here, exercise the smallest real
+entrypoint the project has and say so.
 
-## Stage 3: Report the observed result
+A change to docs or tests alone needs its own checks, not a made-up runtime flow. A claim that
+depends on a real process, network or GPU needs that real thing.
 
-1. Lead with the verified outcome or actionable finding, cause and decisive evidence. Distinguish
-   observed behavior from inference and retain reproduction commands or captures when useful.
-2. Separate source changes, installation, restart, visual inspection and deployment. Name blocked
-   boundaries and untested behavior; a workflow's completion message is not proof by itself.
+Confirm the running program loaded the build and configuration you changed. Then check the
+original flow. A failed check goes back to diagnosis.
+
+## Stage 3: Report
+
+Lead with the result or the finding, then the cause and the evidence that settles it. Say
+separately what was changed in source, what was installed, what was restarted and what was
+deployed. Name what you could not test.
 
 # Verification ladder
 
-This is the shared default for verification cost. Specialist skills add relevant surface checks;
-artifact-heavy specialist references are escalation routes, not a mandatory minimum for every task.
-Higher tiers retain the decisive checks from lower tiers and expand only implicated boundaries.
+A higher tier keeps the lower tiers' checks and adds to them only where the trigger points.
 
 ## Tier 1: Focused
 
-- Default for a bounded, understood change with a local acceptance path and no Tier 2/3 trigger.
-- Inspect the owned diff, run the repository's applicable changed-file checks, and exercise the
-  smallest real affected entrypoint. For a durable logic repair, prove the regression fails before
-  and passes after when feasible. State unavailable runtime boundaries honestly.
-- UI claims need rendered evidence when appearance is material; source/build success alone does
-  not prove appearance. A small task needs the relevant capture, not a comparison campaign.
-- Keep a short command/result and revision receipt. No compulsory manifest, checksums, timed stream,
-  extra reviewer, CI provisioning, or multiple repair rounds merely to satisfy a generic ceremony.
+The default for a bounded, understood change with a local way to check it.
+
+- Read the diff you own, run the repository's checks for the changed files, and exercise the
+  smallest real entrypoint the change affects.
+- For a logic fix, show the regression check failing before the fix and passing after, when that
+  is feasible.
+- When appearance matters, look at the rendered result. A passing build does not show what a
+  screen looks like. One capture of the relevant view is enough.
 
 ## Tier 2: Boundary regression
 
-- Escalate for changed public/API contracts; state/persistence or migrations; shared asynchronous,
-  process, network, or privilege boundaries; security-sensitive effects; configuration installation;
-  multiple interacting surfaces/platforms; uncertain ownership; or a regression with unclear scope.
-- Inventory affected callers/surfaces, test the relevant happy and failure/lifecycle paths, and
-  verify the real crossing plus one nearby unaffected path. For an installed update, bind source,
-  selected ref, installed revision, effective configuration, and activation separately.
-- Use an independent reviewer only for a consequential claim not settled by the available checks,
-  or when requested/repository-required. One scoped review is the default, not a fixed loop count.
-- If scope is initially unknown, begin with a short Tier 2 discovery pass. Remain here while any
-  trigger is unresolved; return to Tier 1 only after explicitly ruling those triggers out.
+Use this tier when the change touches any of:
+
+- a public or API contract;
+- stored state, persistence or a migration;
+- a shared asynchronous, process, network or privilege boundary;
+- anything security-sensitive;
+- installed configuration;
+- several surfaces or platforms that interact;
+- a regression whose extent is unclear.
+
+Then:
+
+- List the callers and surfaces affected. Test the working path and the failure path across the
+  real boundary, plus one nearby path that should be unaffected.
+- For an installed update, check each link separately: the source, the selected ref, the
+  installed revision, the effective configuration, and whether it is active.
+- If the extent is unknown, start here with a short look around. Drop to Tier 1 once the triggers
+  above are ruled out.
 
 ## Tier 3: Forensic
 
-- Escalate for two unsuccessful repairs of the same symptom, unexplained nondeterminism, races,
-  timing/flicker/performance claims, contradictory runtime identity, or explicit forensic/replayable
-  evidence requirements. A high reasoning-effort setting alone does not select this tier.
-- Retain replayable inputs and the implicated timing/event/state trace. Use richer source/build
-  manifests, hashes, terminal raw streams, profiling, or independent reconstruction only where
-  they distinguish a hypothesis or establish provenance needed for the claim.
-- Bound each experiment by a hypothesis and acceptance criterion. Stop expanding evidence when
-  the symptom, affected boundaries, and causal claim are established. Repeated failed repairs call
-  for renewed diagnosis, not repeated identical tests or automatic reviewer relaunches.
-- Missing tools/access produce a precise blocked boundary. Never fabricate evidence, install an
-  alternate automation stack, or broaden authority to make the tier appear complete.
+Use this tier after two failed repairs of the same symptom, for nondeterminism you cannot
+explain, for races, for claims about timing, flicker or performance, or when the user asks for
+replayable evidence.
 
-# Browser evidence and permission
+- Keep inputs that replay the failure, and the timing, event or state trace around it.
+- Tie each experiment to a hypothesis and to what result would confirm or refute it. Stop
+  gathering when the symptom, the boundary and the cause are established.
+- After a failed repair, diagnose again. The same test run twice tells you nothing new.
 
-- Use T3 preview tools only when the current request asks for browser work or names a page/tab.
-  A frontend edit or an evidence requirement is not by itself permission to use those tools.
-- Otherwise use an already available repository-approved local capture/runtime facility within
-  task scope. Do not install or switch automation systems merely to obtain a screenshot.
-- Supplied captures can support a review of those artifacts. Do not label them fresh verification
-  of a new build. If no permitted capture route exists, report visual verification as blocked.
-- Use permitted semantic/runtime evidence for interaction claims and actual images for appearance;
-  distinguish captured, inspected, deployed, and active-session states.
+# Browser and screenshots
 
-# Design basis
-
-- Claude Code's verification-first guidance grounds completion in an executable check:
-  <https://code.claude.com/docs/en/best-practices>.
-- Local session history repeatedly requests real hot-path checks, causal repairs, and lightweight
-  smoke testing appropriate to exploratory work. Existing project checks remain authoritative.
+- Use T3 preview tools when the current request asks for browser work or names a page or tab. A
+  "full stop" or "full send" grant also supplies that permission for its task. A frontend edit
+  alone does not.
+- Without that permission, use a capture or runtime facility the repository already provides. If
+  there is none, report visual verification as blocked.
+- Screenshots the user supplied show what they show. They are not verification of a new build.
+- Use real images for claims about appearance, and runtime evidence for claims about interaction.

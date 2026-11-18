@@ -45,7 +45,8 @@ Show three lists and stop for approval before editing anything:
 
 ## Stage 4: Edit
 
-Make the approved edits with `../create-skill/SKILL.md`. QStack skills are edited in
-`~/docs/src/QStack/main`, never through an installed link, chezmoi or a plugin cache. State the
+Make the approved edits with `../create-skill/SKILL.md`. QStack skills are edited in the QStack
+clone the installed skills link to (resolve an installed skill's symlink to find it), never
+through an installed link, chezmoi or a plugin cache. State the
 correct behavior on the happy path; do not add a "don't" for the mistake. Commit locally and
 leave the push to the user.

@@ -24,7 +24,7 @@ metadata:
 - Design: each seat's proposed architecture, its reasons and its strongest objection.
 - Review: each voting seat's score, and the findings you confirmed against the code. With a
   comparison, each seat's scores for every thing compared and what it preferred about each.
-- The tagged notes for your final reply. No delegate left running.
+- The tagged notes for your final reply.
 
 One call is one round. The caller decides whether to run another.
 
@@ -87,7 +87,8 @@ wrong, `should` means a real bug callers will hit, anything else is a `nit` what
 labelled. A finding that asks for more than the request asked for is out of scope, not a defect.
 Return each voting seat's score, the confirmed findings and any lint rules proposed. Never invent a score.
 
-Cancel any delegate still running. Add the tagged notes to your final reply, one per line, each
+Cancel any voting delegate still running. A jester that has not answered is left to finish, and
+cancelled when the next round starts or the caller is done. Add the tagged notes to your final reply, one per line, each
 starting with its tag so a later search finds it:
 
 ```

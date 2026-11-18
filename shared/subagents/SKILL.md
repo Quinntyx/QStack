@@ -1,9 +1,9 @@
 ---
 name: subagents
-description: "Use when delegating work, launching parallel children, coordinating multi-angle
-  research or parallel implementation, integrating parallel work, selecting child models, or
-  delegating review. Owns the work shape and acceptance; the harness-delegation skill owns how
-  this harness launches and joins children."
+description: "Use when handing work to child agents: launching one child or several in parallel,
+  splitting an implementation across builders, running parallel research, bringing the results
+  back together, or choosing a child's model. The harness-delegation skill says how this harness
+  launches and joins children."
 metadata:
   type: procedure
 ---
@@ -12,91 +12,94 @@ metadata:
 
 ## Input Contract
 
-- Requested outcome, acceptance criteria and permitted effects.
-- Supplied child counts, parallelism, models, settings and deadlines.
-- The `harness-delegation` skill for this harness, and T3 MCP access for managed delegation.
-- Verified repository/project binding and exclusive writer ownership where needed.
+- The work to hand off, how you will tell it is done, and what the children may do (edit, push,
+  open a PR) under the task you were given.
+- Any limits the user set: how many children, how many at once, which models.
+- The `harness-delegation` skill for this harness. It names the launch route.
 
 ## Output Contract
 
-- Verified results or a truthful partial outcome with retained resume identities.
-- Child identities recorded per launch route, plus relevant revision/evidence records.
-- No unassigned publication, installation, merge, new thread or workspace allocation.
-
-# Runtime rules
-
-- Load the `harness-delegation` skill before the first launch. It decides which children this
-  harness runs through its own mechanism and which go through T3 `delegate_task`, and it owns the
-  join, wait and cancellation controls for each route. Exactly one skill of that name is installed
-  per harness; if none is available, report that instead of guessing a launch route.
-- A missing managed route is a blocker, not a provider CLI or shell-checkout fallback. Keep the
-  parent's mode ceiling: a child never receives broader modes than this thread.
-- For T3, call `orchestrator_capabilities` once before the first delegate; repeat only after an
-  error or user-named provider change. Put supported settings in `target.options`. Report an
-  unavailable named model/provider rather than substituting one.
-- T3 owns worktree allocation; the user owns child limits and publication authority. A batch uses
-  managed delegates and the independent-implementation reference below.
+- The children's work, read and checked by you, together in your checkout where it was code.
+- No child left running that nobody is waiting for.
+- A report of what was done and what was not, naming T3 children by their returned links.
 
 # Entrypoint
 
-## Stage 1: Select the smallest useful shape
+## Stage 1: Split the work
 
-1. Bind outcome, effects and supplied limits. Distinguish total launches from live concurrency;
-   reviews/retries count toward the user's cap. Decompose by acceptance outcome, not agent roles
-   for their own sake. Give leaves no onward delegation unless explicitly bounded.
-2. For model-selection-only work read `model-selection/SKILL.md` and return the plan. For execution,
-   choose the launch route using Runtime rules. One assignment needs only lightweight delegation;
-   dependent work remains blocked until its inputs are accepted.
-3. A single delegated review uses the review route `harness-delegation` names. Comment publication
-   and applying fixes remain effects distinct from read-only findings.
-4. Continue to Stage 2 with a finite roster and clear acceptance criteria.
+Split by outcome: each child gets one piece with a result you can check alone. Use as few
+children as the work needs, and stay inside the user's limits. One question is one child.
 
-## Stage 2: Prepare
+Give each piece its own files, so that children working at the same time never edit the same
+one. Pieces that cannot be separated that way go to one child, or run one after the other. A
+piece that needs another piece's result waits until you have accepted that result.
 
-1. Check actual runtime, services, task inputs and baseline once. Use `references/runtime.md` and
-   model-selection for T3 bindings/settings.
-2. Give each child a self-contained brief, owned paths, permitted effects, relevant skill paths and
-   a compact expected output. Keep large inputs/artifacts in files rather than pasted prompts.
-3. T3 concurrent same-repo writers require the correct bound project and `isolation:'worktree'`;
-   allocation starts at the coordinator's committed baseline. Read-only work can share. Explicitly
-   prepared distinct repos can each have one exclusive writer with exact source-path ownership.
-   A path in a brief does not bind a project, and allocation does not grant a PR or push.
-4. Retain identities, limits and input/revision dependencies, then continue to Stage 3.
+## Stage 2: Write the briefs
 
-## Stage 3: Execute
+The brief is all the child knows. Write it so the child has nothing left to guess:
 
-1. Launch each child through its selected route. T3 children use `delegate_task` with a useful
-   title/role and a retained taskId. Use returned completion wakes/`next`; do not poll running
-   delegates. A wait timeout leaves the child live.
-2. For T3, read only the reference selected by the actual work shape:
-   - One assignment: `references/delegation.md`.
-   - Evidence research: `references/research.md`.
-   - Independent/batch implementation: `references/independent-implementation.md`.
-   - Dependent integration: `references/dependent-integration.md`.
-   - Independent review: `references/review.md`.
-3. Record each completion/failure once. Release accepted dependents; keep unrelated results usable.
-   Infrastructure/credential failures remain explicit rather than becoming identical retry loops.
-4. Continue to Stage 4 when results are ready, or Stage 5 for a start-only/blocked handoff.
+- the outcome, and the request it serves;
+- the files and symbols it owns, and what is out of scope;
+- what you already know: decisions made, patterns in the repository to copy, findings by path;
+- the commands that check the work;
+- anything shared it must not start a second copy of, such as a dev server, a port or a GPU,
+  and which child owns it;
+- what it may do (edit only, or also commit, push, open a PR);
+- what to send back.
 
-## Stage 4: Verify
+Put large inputs in files and give their paths.
 
-1. Check evidence, actual changed artifacts and the integrated revision; child summaries alone are
-   not proof. Use `../runtime-verification/SKILL.md` and the repository's actual check floor.
-2. Use one scoped independent review when needed/requested, not mandatory repeated rounds. Repair
-   small findings directly. A new T3 review/re-check is a new `delegate_task`, within the launch cap.
-3. Confirm scope and authorized effects. Accepted or budget-limited work goes to Stage 5; a useful
-   bounded repair returns to Stage 3. Two failed repairs require renewed diagnosis, not repetition.
+## Stage 3: Launch
 
-## Stage 5: Retain or finish
+1. Load the `harness-delegation` skill and use the route it names. For T3 `delegate_task`, read
+   `references/runtime.md` once for the parameters.
+2. Choose each child's model with `model-selection/SKILL.md`.
+3. Children work in your checkout (`isolation: 'shared'`, the default), in parallel, each on
+   the files its brief gives it. They see your uncommitted work and each other's as it lands.
+4. Use a worktree (`isolation: 'worktree'`) for children that would edit the same files, or for
+   competing versions of the same piece. A worktree starts from your last commit, so commit
+   first: edits you have not committed do not exist there. T3 makes the worktree. A checkout
+   made in the shell, or a path written in a brief, does not bind a child to a project.
 
-1. Retain result state, revisions, artifacts, branches/PRs and resume identities proportional to the
-   work. Read `references/resumable-state.md` for uncertain side effects or dependent integration.
-2. Cancel replaced/unneeded live T3 work with `task_cancel`, not top-level thread interruption.
-   Completed task results remain readable; never poll an unfinished task for its final result.
-3. Report verified outcomes, blockers and pending effects. Mention T3 children/threads using their
-   returned links verbatim.
+## Stage 4: Wait
 
-# Focused entrypoints
+Follow the `next` each launch returns and let the completion wake arrive. A running child is
+left alone until then: its status is read after the wake, once.
 
-`model-selection/SKILL.md` owns model choice, not execution permission. The conditional references
-above inherit this skill's scope and runtime rules; they are not standalone advertised commands.
+Cancel a child you have replaced or no longer need with `task_cancel`.
+
+## Stage 5: Read what came back
+
+A child's summary is a claim. Open what it changed or found and check it against the brief: run
+the check commands, read the diff, open the cited source.
+
+When a piece is wrong or incomplete, fix a small thing yourself. For anything larger, correct
+the brief and launch a new child. Children are one-shot, so the new brief carries the old child's
+summary, its branch, and what was wrong.
+
+## Stage 6: Bring it together
+
+Work done in your checkout is already together. Merge any worktree branches you accepted, in
+dependency order, resolving conflicts toward what the whole change needs. Then check the
+combined result once by running it: pieces that each pass alone can still fail together.
+
+Report what was done, what is still open, and each T3 child by its link.
+
+# Research in parallel
+
+Give each child one question and ask for its sources: the URL or file and line, the quotation or
+code it relies on, and what is still uncertain. Combine the answers yourself, keep disagreements
+visible as open questions, and open the sources behind any claim your conclusion rests on.
+
+# Picking up after a lost context
+
+Before launching anything again, find what already exists: `t3_thread_list` and `t3_thread_read`
+for children, `t3_worktree_list` for their branches. A child that finished while you were away
+still has its result. Before repeating a push, PR or comment, read the remote to see whether the
+first attempt landed. Continue unfinished work with a new child whose brief carries the old
+one's summary and branch.
+
+# New threads
+
+Delegation uses `delegate_task`. `t3_thread_launch` and `create_threads` make top-level threads,
+which are for when the user asks for a thread or a skill the user invoked calls for one.

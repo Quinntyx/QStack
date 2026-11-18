@@ -13,8 +13,9 @@ metadata:
   targets. Native `/update-config` or `/config` is not an ownership override: persistent managed
   changes go through the resolved source and edit-config's lifecycle, not a second write to the
   live destination.
-- Skills installed from QStack are symlinks into `~/docs/src/QStack/main`; edit them in that
-  repository, not through the link's parent directory and not in chezmoi.
+- Skills installed from QStack are symlinks into a QStack clone. Resolve an installed skill's
+  symlink to find it, and edit the skill in that repository, not through the link's parent
+  directory and not in chezmoi.
 - `~/.claude.json` holds runtime/auth/MCP state; use supported Claude MCP/settings commands for it.
 - Never adopt `~/.claude/plugins/cache`, transcripts, credentials or generated installed-plugin
   registries. Plugin managers own fetched plugins and skill caches.
