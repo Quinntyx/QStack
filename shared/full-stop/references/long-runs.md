@@ -20,8 +20,11 @@ in one turn: model training, a long benchmark, a large evaluation or data job.
 
 A run you are not looking at can fail for hours before anyone notices. Set up a recurring check
 with `schedule_task`: an interval schedule, bound to this thread, whose prompt says what is
-running, where its logs and checkpoints are, and what healthy looks like. Outside T3, use the
-harness's own scheduler.
+running, where its logs and checkpoints are, and what healthy looks like. Then call
+`t3_background_wait` with the schedule's ID and end the turn. That keeps the thread shown as
+Working for as long as the schedule lives, instead of looking finished between checks; the wait
+carries over from one check to the next, so it is set once. Outside T3, use the harness's own
+scheduler.
 
 Pick the interval from how long the run should take and how fast you would have to act if it
 went wrong:
@@ -44,7 +47,8 @@ Each time you wake:
    and the logs. Work out why yourself, fix it and relaunch. A second failure of the same kind
    means the design is wrong, not the run: go back to `full-stop` Stage 2.
 
-When the run finishes or you stop it for good, delete the schedule with `delete_scheduled_task`.
+When the run finishes or you stop it for good, delete the schedule with `delete_scheduled_task`,
+which also ends the wait.
 Read the results against what you wrote down before launch, and carry on from where `full-stop`
 sent you here. The command, the configuration and the numbers go in the PR description or the
 handoff, so the run can be repeated.
