@@ -1,89 +1,93 @@
 # QStack
 
-QStack is my set of agent skills. I run them in [T3 Code](https://github.com/pingdotgg/t3code)
-with two harnesses, Claude Code and Pi.
+These are the agent skills I use every day. I run them with Claude Code and Pi
+inside [T3 Code](https://github.com/pingdotgg/t3code).
 
-I started it after reading [pstack](https://github.com/cursor/plugins/tree/main/pstack) by Poteto
-and [tstack](https://github.com/t3dotgg/tstack) by Theo. I like tstack's philosophy a lot, and I
-wanted skills like it that work for someone who doesn't hold a top-tier subscription at every
-frontier lab. tstack leans on running many frontier models side by side. QStack gives each model
-the job it's best at and fills the cheaper seats with open-weight models. GPT Sol reviews code,
-Claude Opus sits on the review panel next to it, and GLM and DeepSeek do focused work through
-OpenCode Go, which is cheap enough to use all day.
+I like Theo's [tstack](https://github.com/t3dotgg/tstack) and Poteto's
+[pstack](https://github.com/cursor/plugins/tree/main/pstack), and I wanted a set of skills like
+theirs that I could afford to run. tstack is written for someone with a top-tier plan at every
+frontier lab, who can put several frontier models on each decision. I give each model the jobs it
+does well instead, and I use open-weight models like DeepSeek and GLM wherever they hold up,
+because OpenCode Go makes them cheap enough to run all day.
 
-## The skills
+## How the models are split up
 
-Skills in `shared/` work in both harnesses. A few jobs need harness-specific steps, so each of
-those has a `harness-*` skill with the same name in `claude/` and in `pi/`.
+- **Delegated work** such as scoped changes, bug diagnosis and research goes to GLM 5.3 Flash or
+  DeepSeek V4.1 Flash. When a builder fails review twice on the same requirement, the task moves
+  to a frontier model.
+- **Hard engineering and final review** go to GPT 6.1 Sol.
+- **Several models at once** only when I say `council`. The review panel is Sol (6.2 and 6.1
+  sharing one vote), Claude Opus 5.5 and Muse Ember, plus GLM 5.3 as a non-voting "jester" whose
+  findings are leads to check, not votes. Design questions go to Claude Fable 5.2 and GPT 6.2
+  Astra. Those two stay off code review because they cost too much for it.
+- Claude models run through Claude Code. Every other model runs through Pi.
 
-| Skill | What it does |
+The roster is written as plain sentences in
+[`shared/subagents/model-selection/SKILL.md`](shared/subagents/model-selection/SKILL.md) and the
+Panels section of [`shared/council/SKILL.md`](shared/council/SKILL.md). To use your own models,
+edit those two files.
+
+## Skills
+
+Four skills start on a phrase you type:
+
+| Say | What happens |
 | --- | --- |
-| `council` | Say "council" to get a change reviewed, or a design question answered, by a panel of other models. "council 9.5" sets the score every voting seat must reach. |
-| `full-stop` | Say "full stop" to have the agent finish the task on its own through a ready-to-merge PR, then hand off. |
-| `full-send` | Same as `full-stop`, then merges the PR once its checks pass. |
-| `reflect` | Say "reflect" to turn lessons from the current conversation into proposed edits to existing skills. Adapted from pstack. |
-| `subagents` | Delegating work: parallel research, parallel implementation, integrating results, delegated review. |
-| `subagents/model-selection` | Picks a model, effort and provider for each child, using the roster below. |
-| `estimate-time` | Estimates how long agent work will take, from measured per-model run times. |
-| `runtime-verification` | Decides what evidence a bug fix or change needs before it counts as verified. |
-| `git` | Cloning, branches, worktrees, commits and pushes. Sub-skills cover `pr`, `issues`, `init-project` and `github-mirror` (Forgejo to GitHub mirroring). |
-| `project-plan` | Project plans, architecture docs, `PLAN.md`. |
-| `agent-repo-guidance` | Writing or repairing a repository's `AGENTS.md` / `CLAUDE.md`. |
-| `create-skill` | Writing, revising and testing skills, including the Contract/Entrypoint shape these skills use. |
-| `edit-config` | Changing dotfiles and app or harness configuration at its real source. |
-| `deslop` | Writing prose people will read: READMEs, PR descriptions, commit messages, reports. |
-| `harness-config`, `harness-delegation`, `harness-verification` | The Claude Code and Pi versions of configuration, child-agent launching and runtime checks. |
+| `council` | A panel of models reviews a change until every voting seat scores 9/10 (or the number you give, as in `council 9.5`), or advises on a design. |
+| `full stop` | The agent finishes the task on its own and stops at a ready-to-merge PR. |
+| `full send` | Same as `full stop`, then it merges the PR once it passes full-stop's readiness gate. |
+| `reflect` | The agent pulls lessons from the conversation and proposes edits to existing skills. Adapted from pstack. |
 
-## Models
+The rest load when the task matches their description:
 
-Model choices live in two places, written as plain sentences you can edit:
+| Skill | Use |
+| --- | --- |
+| `subagents` | Delegating work to child agents, with `model-selection` inside it for picking models |
+| `runtime-verification` | Deciding how much evidence a fix or change needs before calling it done |
+| `estimate-time` | Estimating how long agent work takes, from measured per-model times |
+| `git` | Cloning, branching, committing, issues and PRs, with `pr`, `issues`, `init-project` and `github-mirror` inside it |
+| `project-plan` | Project plans, architecture docs and roadmaps |
+| `agent-repo-guidance` | Writing or fixing a repository's AGENTS.md or CLAUDE.md |
+| `create-skill` | Writing and testing new skills |
+| `edit-config` | Changing dotfiles and app settings through their owner, such as chezmoi |
+| `deslop` | Writing prose people will read, this README included |
 
-- [`shared/subagents/model-selection/SKILL.md`](shared/subagents/model-selection/SKILL.md) holds
-  the roster. Focused work (small, independently checkable changes and evidence gathering) goes to
-  GLM 5.3 Flash and DeepSeek V4.1 Flash. Frontier work goes to GPT 6.1 Sol. The file also sets
-  effort per model; DeepSeek always runs at max.
-- [`shared/council/SKILL.md`](shared/council/SKILL.md) holds the panels. The review panel is
-  Sol (GPT 6.2 and 6.1 as one vote), Claude Opus 5.5 and Muse Ember, with GLM 5.3 as a
-  non-voting "jester" whose findings are leads to check, not votes. The design panel is Claude
-  Fable 5.2 and GPT 6.2 Astra, which cost too much to sit on every review.
+`claude/` and `pi/` each hold three `harness-*` skills with the same names: `harness-config`,
+`harness-delegation` and `harness-verification`. The shared skills refer to them by name, so the
+same `subagents` skill launches children through whichever harness loaded it.
 
-With T3's `delegate_task`, Claude models run on the Claude Code provider and every other model runs
-on Pi. A model your T3 setup doesn't list is reported as unavailable, not quietly swapped for
-another, so change these files to match the models you have.
-
-Some skills assume my setup: T3 Code's MCP tools for delegation, Forgejo with a GitHub mirror in
-`git`, and [trash-cli](https://github.com/andreafrancia/trash-cli) instead of `rm`. Read a skill
+Some skills assume my setup. `git` expects a Forgejo origin with GitHub mirrors, `edit-config`
+expects chezmoi, and `council` and `subagents` need T3 Code's `delegate_task` tool. Read a skill
 before you install it.
 
 ## Install
 
-You need Python 3. Clone the repository and link the skills into a harness:
+You need Python 3.
 
 ```sh
 git clone https://github.com/Quinntyx/QStack
 cd QStack
 bin/qstack install claude                  # links into ~/.claude/skills
-bin/qstack install pi --profile NAME       # links into ~/.config/pi/profiles/NAME/skills
-bin/qstack install pi --dir PATH           # or any skills directory
+bin/qstack install pi --profile <name>     # links into ~/.config/pi/profiles/<name>/skills
 ```
 
-Each skill becomes one symlink, so a `git pull` updates every installed skill. `--only council,git`
-installs a subset and `--dry-run` shows what would change. `install` never replaces a file or
-directory that isn't already a QStack link; it reports a conflict and leaves it alone.
+Each skill is installed as a symlink into the clone, so `git pull` updates them. Use `--dir` for
+another destination, `--only council,deslop` to pick skills, and `--dry-run` to see what would
+change. `install` never overwrites anything that is not already a QStack link: it reports a
+conflict and leaves the file alone.
 
-`bin/qstack status <harness>` lists each skill as linked, missing, stale or conflicting.
-`bin/qstack uninstall <harness>` removes the links with `trash-put`.
+`bin/qstack status claude` shows what is linked. `bin/qstack uninstall claude` removes the links
+with `trash-put`, so it needs [trash-cli](https://github.com/andreafrancia/trash-cli).
 
 ## Contributing
 
-Repository rules for agents and people are in [`AGENTS.md`](AGENTS.md). Run both checks before
-committing:
+Repository rules are in [`AGENTS.md`](AGENTS.md). Run both checks before committing:
 
 ```sh
 bin/qstack check
 python3 -m unittest discover -s tests
 ```
 
-`bin/qstack check` validates each skill's frontmatter, that `claude/` and `pi/` offer the same
-skill names, and that every relative link resolves once the skills are installed. Whether a model
-picks a skill and follows it still needs a run in a fresh session.
+`bin/qstack check` validates frontmatter, checks that `claude/` and `pi/` offer the same skill
+names, and resolves every relative link as each harness will see it once installed. It cannot
+tell you whether a model picks up and follows a skill. That takes a run in a fresh session.
