@@ -7,13 +7,31 @@ metadata:
   type: guideline
 ---
 
-# Know the reader
+# Model the reader first
 
-- Decide who reads this and what they will do next. Open with what that reader needs most, and
-  stop when they have it.
-- Say each thing once, in the place the reader will look for it.
-- Write the draft from the facts, not from a template. If you do not know what the piece is
-  claiming, find out before you write a sentence of it.
+Before the first sentence, answer these in your head. If you cannot, find out or ask.
+
+- **Who is reading?** Name one real kind of person: a stranger who found the repository, a
+  reviewer on your team, the user who asked the question, yourself in six months.
+- **What do they already know?** A stranger knows none of your project's names, history or
+  setup. A teammate knows the codebase but not what you did today.
+- **Why are they here, and what will they do next?** Decide whether to use it, approve it, fix
+  it, or just understand it.
+
+Then write only for that person:
+
+- Open with what they came for and stop when they have it.
+- Keep a sentence only if this reader would miss it. Your reasons for building the thing, how
+  you organize your own machine and what you tried first are true and matter to you. They stay
+  out unless they change what the reader does.
+- Use the reader's words. Define a term the first time if they would not know it, and skip the
+  definition if they would.
+- Match the voice to the relationship. Address a stranger as "you" and show them what they get.
+  Give a teammate the change and the risk. Give the user who asked a question the answer.
+- When one document has two readers, serve the more distant one first and put the rest under a
+  heading the first reader can skip.
+
+Say each thing once, in the place the reader will look for it.
 
 # Make every sentence checkable
 
