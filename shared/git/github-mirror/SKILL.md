@@ -117,7 +117,7 @@ GitHub is lost at the first sync. Settle the refs before that.
    and any `upstream` that only pointed at the mirror. Worktrees share the main clone's remotes.
    A fork's real upstream stays.
 4. Tool configuration that names the repository as a package source keeps pointing at Forgejo.
-   Changing it goes through `../../edit-config/SKILL.md`.
+   Changing it is a configuration change, made at that configuration's own source.
 5. Report the mirror destination, completion time, last error, whether the refs match, the local
    remotes and tracking, and anything pending.
 

@@ -2,7 +2,7 @@
 name: harness-config
 description: "Use when a skill names harness-config, or when changing Pi's own profile files,
   settings, extensions, prompts, skills or packages, choosing where a Pi skill is deployed, or
-  bootstrapping a repository AGENTS.md. Pi binding for edit-config, create-skill and repo guidance."
+  bootstrapping a repository AGENTS.md. Pi binding for create-skill, repo guidance and configuration editing."
 metadata:
   type: guideline
 ---
@@ -12,7 +12,7 @@ metadata:
 - Establish the active profile from runtime context, not the working directory or a copied profile
   name. Profile files live under `~/.config/pi/profiles/<profile>/` and are chezmoi targets; their
   source is `dot_config/pi/profiles/<profile>/` in the chezmoi repository. Persistent changes go
-  through that source and edit-config's lifecycle.
+  through that source and that manager's own publish-and-apply steps.
 - Skills installed from QStack are symlinks into a QStack clone. Resolve an installed skill's
   symlink to find it, and edit the skill in that repository, not through the link's parent
   directory and not in chezmoi.

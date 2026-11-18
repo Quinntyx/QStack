@@ -37,7 +37,7 @@ in `PLAN.md`, per `../project-plan/SKILL.md`.
 Read the existing AGENTS.md and CLAUDE.md in full, the scripts and the stack, and the failure
 example if there is one. Keep the repository's own vocabulary.
 
-If the guidance file is managed configuration, find its source with `../edit-config/SKILL.md`.
+If the guidance file is managed configuration, find its real source first, with your `edit-config` skill if you have one.
 For a new guidance file the user asked for, load the `harness-config` skill and use the bootstrap
 it names when there is one; that bootstrap does the first survey and draft, and you edit its
 result. Without one, draft from what you read. Existing guidance is repaired in place.

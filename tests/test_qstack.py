@@ -84,5 +84,53 @@ class Install(unittest.TestCase):
             self.assertIn("/claude/", os.path.realpath(Path(tmp) / "harness-config"))
 
 
+class SystemPrompt(unittest.TestCase):
+    def test_claude_home_gets_skills_and_a_rules_link(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            home = Path(tmp) / "other-claude"
+            result = run([QSTACK, "install", "claude", "--home", home])
+            self.assertEqual(result.returncode, 0, result.stdout)
+            self.assertTrue((home / "skills" / "council").is_symlink())
+            self.assertEqual(os.path.realpath(home / "rules" / "qstack.md"),
+                             str(ROOT / "claude" / "APPEND_SYSTEM.md"))
+            status = run([QSTACK, "status", "claude", "--home", home])
+            self.assertRegex(status.stdout, r"linked\s+system prompt")
+            run([QSTACK, "uninstall", "claude", "--home", home])
+            self.assertFalse((home / "rules" / "qstack.md").exists())
+
+    def test_claude_config_dir_env_is_the_default_home(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            env = {**os.environ, "CLAUDE_CONFIG_DIR": tmp}
+            run([QSTACK, "install", "claude", "--only", "council"], env=env)
+            self.assertTrue((Path(tmp) / "skills" / "council").is_symlink())
+
+    def test_pi_profile_block_keeps_the_rest_of_the_file(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            env = {**os.environ, "HOME": tmp}
+            profile = Path(tmp) / ".config" / "pi" / "profiles" / "p"
+            profile.mkdir(parents=True)
+            append = profile / "APPEND_SYSTEM.md"
+            append.write_text("# Mine\n\nKeep this.\n")
+            args = ["pi", "--profile", "p"]
+            self.assertEqual(run([QSTACK, "install", *args], env=env).returncode, 0)
+            text = append.read_text()
+            self.assertTrue(text.startswith("# Mine\n\nKeep this.\n"))
+            self.assertIn("estimate-time", text)
+            again = run([QSTACK, "install", *args], env=env)
+            self.assertRegex(again.stdout, r"ok\s+system prompt")
+            self.assertEqual(append.read_text(), text)
+            self.assertRegex(run([QSTACK, "status", *args], env=env).stdout,
+                             r"linked\s+system prompt")
+            run([QSTACK, "uninstall", *args], env=env)
+            self.assertEqual(append.read_text(), "# Mine\n\nKeep this.\n")
+
+    def test_dir_and_no_system_leave_the_prompt_alone(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            self.assertIn("skipped", run([QSTACK, "install", "claude", "--dir", tmp]).stdout)
+            home = Path(tmp) / "h"
+            run([QSTACK, "install", "claude", "--home", home, "--no-system"])
+            self.assertFalse((home / "rules").exists())
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -24,6 +24,10 @@ layout. Author skills with the `create-skill` skill.
   must not stretch to cover issues.
 - Line count is not the measure; a skill is as long as its content needs. Prefer a sentence the
   user can edit to a config file or a helper script; skills carry no `bin/` directories.
+- `claude/APPEND_SYSTEM.md` and `pi/APPEND_SYSTEM.md` are added to every session's system prompt
+  by `bin/qstack install`. Put a line there only when a skill cannot work without a standing
+  reminder; every line costs context in every session.
+- Commit messages are conventional commits. No model or agent tool is credited as a co-author.
 - Prose in this repository follows the `deslop` skill.
 
 ## Checks

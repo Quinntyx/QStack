@@ -3,13 +3,23 @@
 
 Usage:
   qstack check
-  qstack install   claude|pi [--dir DIR | --profile NAME] [--only a,b] [--dry-run]
-  qstack status    claude|pi [--dir DIR | --profile NAME]
-  qstack uninstall claude|pi [--dir DIR | --profile NAME] [--only a,b] [--dry-run]
+  qstack install   claude [--home DIR | --dir DIR] [--only a,b] [--no-system] [--dry-run]
+  qstack install   pi     [--profile NAME | --dir DIR] [--only a,b] [--no-system] [--dry-run]
+  qstack status    claude|pi [same target options]
+  qstack uninstall claude|pi [same target options] [--only a,b] [--dry-run]
 
 A harness gets every skill in shared/ plus every skill in its own folder, each as one symlink.
-Default DIR is ~/.claude/skills for claude; pi needs --profile (~/.config/pi/profiles/NAME/skills)
-or --dir. install never replaces something that is not already a link into this repository.
+
+Where it installs:
+  claude  HOME/skills, where HOME is --home, else $CLAUDE_CONFIG_DIR, else ~/.claude.
+  pi      ~/.config/pi/profiles/NAME/skills for --profile NAME.
+  --dir   any skills directory, for either harness. Skills only.
+
+install also adds the harness's APPEND_SYSTEM.md to the system prompt, unless --no-system or
+--dir is given: for claude as the link HOME/rules/qstack.md, for pi as a marked block inside
+the profile's APPEND_SYSTEM.md. Text outside the markers is never touched.
+
+install never replaces something that is not already a link into this repository.
 """
 import argparse
 import os
@@ -114,14 +124,104 @@ def check():
     return 1 if errors else 0
 
 
+BEGIN, END = "<!-- qstack:begin -->", "<!-- qstack:end -->"
+
+
+def harness_home(args):
+    """The harness's own directory, or None when only a skills directory was given."""
+    if args.dir:
+        return None
+    if args.harness == "claude":
+        home = args.home or os.environ.get("CLAUDE_CONFIG_DIR") or "~/.claude"
+        return Path(home).expanduser()
+    if args.profile:
+        return Path.home() / ".config" / "pi" / "profiles" / args.profile
+    sys.exit("qstack: pi needs --profile NAME or --dir DIR")
+
+
 def target_dir(args):
     if args.dir:
         return Path(args.dir).expanduser()
+    return harness_home(args) / "skills"
+
+
+def system_source(args):
+    return ROOT / args.harness / "APPEND_SYSTEM.md"
+
+
+def system_target(args):
+    home = harness_home(args)
+    if home is None:
+        return None
+    return home / "rules" / "qstack.md" if args.harness == "claude" else home / "APPEND_SYSTEM.md"
+
+
+def block(args):
+    return f"{BEGIN}\n{system_source(args).read_text().strip()}\n{END}\n"
+
+
+def split_block(text):
+    """Return (before, block, after); block is '' when the markers are absent."""
+    start, end = text.find(BEGIN), text.find(END)
+    if start == -1 or end == -1 or end < start:
+        return text, "", ""
+    end += len(END)
+    if text[end:end + 1] == "\n":
+        end += 1
+    return text[:start], text[start:end], text[end:]
+
+
+def system_state(args):
+    target = system_target(args)
+    if target is None:
+        return "skipped"
     if args.harness == "claude":
-        return Path.home() / ".claude" / "skills"
-    if args.profile:
-        return Path.home() / ".config" / "pi" / "profiles" / args.profile / "skills"
-    sys.exit("qstack: pi needs --profile NAME or --dir DIR")
+        return state(target, system_source(args))
+    if not target.exists():
+        return "missing"
+    current = split_block(target.read_text())[1]
+    return "missing" if not current else "linked" if current == block(args) else "stale"
+
+
+def system_install(args):
+    target, what = system_target(args), system_state(args)
+    if what == "skipped":
+        print("skipped   system prompt (not installed with --dir)")
+        return 0
+    label = f"system prompt -> {target}"
+    if what == "linked":
+        print(f"ok        {label}")
+    elif what in ("conflict", "foreign-link"):
+        print(f"CONFLICT  {target} exists and is not a QStack link; left untouched")
+        return 1
+    else:
+        if not args.dry_run:
+            target.parent.mkdir(parents=True, exist_ok=True)
+            if args.harness == "claude":
+                tmp = target.with_name(".qstack.md.qstack-tmp")
+                os.symlink(system_source(args), tmp)
+                os.replace(tmp, target)
+            else:
+                text = target.read_text() if target.exists() else ""
+                before, _, after = split_block(text)
+                if not _ and before and not before.endswith("\n\n"):
+                    before += "\n" if before.endswith("\n") else "\n\n"
+                target.write_text(before + block(args) + after)
+        print(f"{'updated' if what == 'stale' else 'added':9} {label}")
+    return 0
+
+
+def system_uninstall(args):
+    target, what = system_target(args), system_state(args)
+    if what not in ("linked", "stale"):
+        return
+    if not args.dry_run:
+        if args.harness == "claude":
+            subprocess.run(["trash-put", "--", str(target)], check=True)
+        else:
+            before, _, after = split_block(target.read_text())
+            target.write_text(before.rstrip("\n") + ("\n" if before.strip() else "") + after)
+    print(f"removed   system prompt from {target}")
 
 
 def selected(args):
@@ -162,6 +262,8 @@ def install(args):
         else:
             conflicts += 1
             print(f"CONFLICT  {name}: {link} exists and is not a QStack link; left untouched")
+    if not args.no_system and not args.only:
+        conflicts += system_install(args)
     if conflicts:
         print(f"{conflicts} conflicts. Move the existing copy out of its owner (chezmoi or "
               f"otherwise), then install again.")
@@ -172,6 +274,7 @@ def status(args):
     dest = target_dir(args)
     for name, source in selected(args).items():
         print(f"{state(dest / name, source):12} {name}")
+    print(f"{system_state(args):12} system prompt")
     return 0
 
 
@@ -183,6 +286,8 @@ def uninstall(args):
             if not args.dry_run:
                 subprocess.run(["trash-put", "--", str(link)], check=True)
             print(f"unlinked  {name}")
+    if not args.only:
+        system_uninstall(args)
     return 0
 
 
@@ -194,11 +299,14 @@ def main():
     for cmd in ("install", "status", "uninstall"):
         p = sub.add_parser(cmd)
         p.add_argument("harness", choices=HARNESSES)
-        p.add_argument("--dir")
-        p.add_argument("--profile")
-        if cmd != "status":
-            p.add_argument("--only")
-            p.add_argument("--dry-run", action="store_true")
+        p.add_argument("--dir", help="a skills directory; skills only")
+        p.add_argument("--home", help="claude: its config directory (default "
+                                      "$CLAUDE_CONFIG_DIR or ~/.claude)")
+        p.add_argument("--profile", help="pi: the profile name")
+        p.add_argument("--only", help="comma-separated skill names")
+        p.add_argument("--dry-run", action="store_true")
+        p.add_argument("--no-system", action="store_true",
+                       help="leave the system prompt alone")
     args = parser.parse_args()
     return {"check": lambda a: check(), "install": install, "status": status,
             "uninstall": uninstall}[args.cmd](args)

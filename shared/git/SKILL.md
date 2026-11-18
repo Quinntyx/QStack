@@ -37,8 +37,9 @@ request lets you publish. Then read the child that owns the operation and follow
 
 The children are read through these paths; neither harness advertises them on its own.
 
-Dotfile and application configuration managed by chezmoi goes through `../edit-config/SKILL.md`,
-on that repository's existing `main` checkout.
+Dotfile and application configuration under a manager such as chezmoi is changed at that
+manager's source, on that repository's existing checkout, with an `edit-config` skill if you
+have one. QStack does not ship one, because it depends on how your dotfiles are managed.
 
 Everything else (locate, clone, fork, branch, commit, push) continues at Stage 2.
 
@@ -137,7 +138,7 @@ Edit these in plain words. They are one person's conventions; replace them with 
   from `dev`.
 - In a `dev` checkout of one of my repositories, a request to implement something includes
   committing and pushing it. A requested chezmoi change includes commit, push to `main` and a
-  targeted apply; `../edit-config/SKILL.md` owns that.
+  targeted apply; my `edit-config` skill, kept with my dotfiles, owns that.
 - The Forgejo CLI is `fj`, logged in as `quinntyx`. Its API token is in
   `~/.local/share/forgejo-cli/keys.json` at `hosts["git.quinntyx.dev"].token`. The API base is
   `https://git.quinntyx.dev/api/v1`. `gh` is logged in as `Quinntyx`.

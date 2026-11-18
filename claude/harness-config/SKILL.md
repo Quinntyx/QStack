@@ -2,7 +2,7 @@
 name: harness-config
 description: "Use when a skill names harness-config, or when changing Claude Code's own settings,
   hooks, CLAUDE.md, skills or plugins, choosing where a Claude skill is deployed, or bootstrapping
-  a repository CLAUDE.md. Claude Code binding for edit-config, create-skill and repo guidance."
+  a repository CLAUDE.md. Claude Code binding for create-skill, repo guidance and configuration editing."
 metadata:
   type: guideline
 ---
@@ -11,7 +11,7 @@ metadata:
 
 - `~/.claude/settings.json`, `~/.claude/CLAUDE.md` and owned personal skills can be chezmoi
   targets. Native `/update-config` or `/config` is not an ownership override: persistent managed
-  changes go through the resolved source and edit-config's lifecycle, not a second write to the
+  changes go through the resolved source and that manager's own publish-and-apply steps, not a second write to the
   live destination.
 - Skills installed from QStack are symlinks into a QStack clone. Resolve an installed skill's
   symlink to find it, and edit the skill in that repository, not through the link's parent
