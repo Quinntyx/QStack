@@ -55,6 +55,13 @@ housekeeping, such as where you keep the files or how your machine is arranged, 
 because the reader's machine is arranged differently. One want the reader shares does more than
 three listed side by side, so pick the best one and let the others go.
 
+Put the want first and let the facts follow it as support. "The old linter takes 40 seconds.
+I couldn't live with that, so this one is faster" states a fact and then reacts to it. "I
+wanted the linter's checks without the 40-second wait, so I built this" starts with a person
+doing something. When your thing answers someone else's work, the same order applies: begin
+with what you liked about theirs and what you set out to build, not with what is wrong with
+theirs.
+
 So say "I" when a person made the thing, tell what bothered you, what you wanted instead and
 whose work you borrowed, and describe how you use it. Let the reader decide whether they want
 it. Product copy does the opposite: it addresses "you", promises an outcome and opens on a
