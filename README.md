@@ -6,7 +6,7 @@ I started from [pstack](https://github.com/cursor/plugins/tree/main/pstack) by P
 [tstack](https://github.com/t3dotgg/tstack) by Theo. tstack assumes you pay for a subscription at
 every frontier lab and can put all of them on every review and let them hill-climb. I can't, so
 QStack gives each model the job it is good at and hands the rest to open-weight models. GPT Sol
-reviews code, with Claude Opus beside it. GLM, DeepSeek and MiMo do the bounded work, and through
+reviews code, with Claude Opus beside it. GLM and DeepSeek do the bounded work, and through
 OpenCode Go they cost little enough to use all the time.
 
 ## What's in it
@@ -42,7 +42,7 @@ other models.
 `shared/subagents/model-selection/SKILL.md` splits work into two tiers:
 
 - **Focused**: bounded implementation with a clear acceptance test, diagnosis, evidence gathering.
-  GLM 5.3 Flash, DeepSeek V4.1 Flash, MiMo V2.6 Flash.
+  GLM 5.3 Flash, DeepSeek V4.1 Flash.
 - **Frontier**: hard engineering, architecture, subtle review, final acceptance. GPT 6.1 Sol.
 
 A focused builder that fails two repair reviews on the same requirement is promoted to the frontier

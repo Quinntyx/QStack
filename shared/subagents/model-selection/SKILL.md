@@ -139,7 +139,7 @@ metadata:
   outcomes, not model names alone. The live truth for availability is
   `orchestrator_capabilities`; a mapped identity absent from the listing is treated as
   unavailable, and an unmapped family is qualified conservatively before use at a tier.
-- Focused tier: GLM 5.3 Flash, DeepSeek V4.1 Flash, MiMo V2.6 Flash when listed.
+- Focused tier: GLM 5.3 Flash and DeepSeek V4.1 Flash when listed.
 - Frontier tier: GPT 6.1 Sol and equivalent frontier engineering models when listed.
 - Council panels are staffed from the Panels section of `../../council/SKILL.md`.
 - When this thread inherits a capable default (a focused-tier model such as DeepSeek V4.1 Flash),
