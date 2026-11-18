@@ -70,8 +70,8 @@ Plain and a little uneven beats polished.
 
 A voice is not a licence to make things up: do not give the author a want or a history they
 do not have. Reading between the lines is different and is part of writing well. If the author
-talks about stacking subscriptions, saying "a month" is a fair reading, and so is turning a
-rant into the plain want underneath it. Infer what a careful listener would infer, and when a
+says the old build "took forever", calling it slow is a fair reading, and so is turning a rant
+into the plain want underneath it. Infer what a careful listener would infer, and when a
 guess would change the meaning, ask.
 
 # Make every sentence checkable
