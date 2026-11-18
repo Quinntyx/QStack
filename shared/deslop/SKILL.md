@@ -101,9 +101,10 @@ words does not fix that; the sentence needs the fact.
   "It isn't X. It's Y.").
 - A list has as many items as there are things. Three is not a default.
 - Hedge once, where you are unsure, and say why. Everywhere else, commit.
-- Say the plain thing and stop. Do not follow it with a neat phrase that sums it up or says
-  what it really is: "I like Redis a lot: it is one idea, done simply." The first four words
-  were the sentence. A phrase polished to balance or echo another one is the same habit.
+- No colon reveal. That is a plain statement, a colon, then a staged payoff that says what the
+  thing really is: "I like Redis a lot: it is one idea, done simply." The first five words were
+  the sentence. The payoff is usually a saying that sounds deep and adds no fact. Keep colons
+  for lists, examples and labels.
 - End the sentence when the fact ends. A trailing "-ing" clause that comments on the sentence
   ("...ensuring a smooth experience") adds nothing.
 - Use a metaphor only when it is shorter and clearer than the literal phrase.
