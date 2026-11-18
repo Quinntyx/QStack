@@ -12,7 +12,9 @@ metadata:
 
 ## Input Contract
 
-- A request containing "full stop", plus the current work state (branch, diff, PR).
+- A request containing "full stop", plus the current work state (branch, diff, PR). The task
+  need not be plain implementation: training a model or running a long benchmark goes through
+  the same stages.
 - Push rights on the repository and visibility of its CI and reviews.
 - `full-send` runs stages 1–9 with its own grant, then merges instead of handing off.
 
@@ -22,7 +24,7 @@ metadata:
 - A handoff naming the PR link, final head, verdict, proof, remaining risks and the decisions you
   made for the user. If a council ran, each round's scores, and the council skill's tagged notes copied in
   word for word, one per line, so a later search of the conversation finds them.
-- No PR watch left active, and no delegate left running.
+- No PR watch or check-back schedule left active, and no delegate left running.
 
 # Entrypoint
 
@@ -71,6 +73,10 @@ out the design you would choose. When it returns, compare the proposals with you
 point. Lean toward the council where you differ, and hold your position where its members missed
 something you can show. Choose one architecture from that mix.
 
+A model training recipe and its hyperparameters are architecture choices of this kind: the
+data, the objective, the schedule, the model size and the evaluation. So is the setup of a
+long benchmark. Hold the design round before spending the compute.
+
 Otherwise, choose the design yourself.
 
 When the whole change is small enough that writing a builder's brief would take longer than
@@ -98,6 +104,15 @@ it, and what is out of scope.
 Builders work in the task's own checkout, so their work lands where you can read it. Chunks
 that own different files run in parallel; a chunk that needs another chunk's result waits for
 it.
+
+**Where failure is expensive, do the work yourself.** A builder is cheap because its mistakes
+are cheap to catch and redo. That stops being true when a mistake burns hours of compute or
+cannot be undone: launching a training run, running a long benchmark, a migration over real
+data. Builders can still write what comes before that step, such as the data loader, the
+harness or the config plumbing, and you read it as in Stage 5. The expensive step itself, and
+the code whose mistakes would only show up during it, you write and run yourself.
+
+A run too long to sit through in one turn follows `references/long-runs.md`.
 
 ## Stage 5: Check and converge
 

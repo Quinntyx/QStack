@@ -35,7 +35,7 @@ Everything in `shared/` works in both harnesses.
 
 | Skill | Use |
 | --- | --- |
-| `full-stop` | Take a task from request to a PR that is ready to merge, then hand it back unmerged. Say "full stop council 9.5" to add a review council with a target score. |
+| `full-stop` | Take a task from request to a PR that is ready to merge, then hand it back unmerged. Say "full stop council 9.5" to add a review council with a target score. Also covers model training and long benchmarks: the expensive run is never handed to the cheap builder, and a scheduled check looks in on it every 5, 15 or 60 minutes. |
 | `full-send` | Everything `full-stop` does, then merge. |
 | `council` | Put one question to a panel of models working blind: a design round or a scored review round. |
 | `subagents` | Delegate work to child agents, including research, parallel implementation and review. `model-selection` sits inside it. |

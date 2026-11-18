@@ -16,6 +16,10 @@ Edit these in plain words.
 - **The builder** is DeepSeek V4.1 Flash, through OpenCode Go, always at max effort. It
   implements one chunk of work from an explicit brief. It does not research, diagnose, design or
   review.
+- **Where failure is expensive, no cheap builder.** When a mistake would burn hours of compute
+  or cannot be undone, such as a model training run, a long benchmark or a migration over real
+  data, a weak implementer can waste far more than it saves. The thread's own model does that
+  step directly. The builder may still write what leads up to it.
 - **Council seats** are listed in the Panels section of `../../council/SKILL.md`, with their
   efforts.
 - A model the user names for a task is used exactly as named, for that task.
