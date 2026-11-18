@@ -101,15 +101,39 @@ words does not fix that; the sentence needs the fact.
   "It isn't X. It's Y.").
 - A list has as many items as there are things. Three is not a default.
 - Hedge once, where you are unsure, and say why. Everywhere else, commit.
-- No colon reveal. That is a plain statement, a colon, then a staged payoff that says what the
-  thing really is: "I like Redis a lot: it is one idea, done simply." The first five words were
-  the sentence. The payoff is usually a saying that sounds deep and adds no fact. Keep colons
-  for lists, examples and labels.
 - End the sentence when the fact ends. A trailing "-ing" clause that comments on the sentence
   ("...ensuring a smooth experience") adds nothing.
 - Use a metaphor only when it is shorter and clearer than the literal phrase.
 - Ask a question only when you want an answer. Do not pose one in order to answer it.
 - Reach for a period or a comma where you want a dash. Put a colon before a list or an example.
+
+# Patterns with names
+
+Each of these stages a point instead of making it. The fix is the same every time: write the
+plain claim, or cut the sentence if there is none.
+
+- **Colon reveal.** A statement, a colon, then a payoff that says what the thing really is: "I
+  like Redis a lot: it is one idea, done simply." The first five words were the sentence. Keep
+  colons for lists, examples and labels.
+- **Saying that sounds deep.** "Symmetry is the language of trust." "X is the Y of Z." An
+  ordinary point dressed as an aphorism, anywhere in the text and not only at a paragraph's end.
+- **Balanced pair.** A phrase polished to mirror the one before it: "the same thing for how I
+  work, at a price I can pay."
+- **Staged run-up.** "Here's the thing", "Let's dive in", "Honestly", "The real question is",
+  "What most people miss". These announce candor or insight before a routine claim. Inserted
+  folksiness is not a voice.
+- **False agency.** A thing gets a human verb so nobody has to be named: "the data tells us",
+  "the decision emerged", "a complaint becomes a fix". Say who did it.
+- **Phantom objection.** "To be clear", "You might think", "This is not to say". The text
+  answers a claim nobody made.
+- **Weightless concession.** "Despite these challenges, X continues to", or two sides set out
+  with no verdict. Say which side you take.
+- **Empty range.** "From startups to enterprises", "from concept to launch". Name the things
+  you mean.
+- **Intensifiers and extremes.** "Really", "simply", "genuinely", "actually", "always",
+  "everyone". They add stress without adding a fact.
+- **One source made plural.** One review becomes "reviewers", two posts become "widespread
+  coverage".
 
 # Let structure follow content
 
