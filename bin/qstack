@@ -1,0 +1,208 @@
+#!/usr/bin/env python3
+"""Check QStack and link its skills into a harness.
+
+Usage:
+  qstack check
+  qstack install   claude|pi [--dir DIR | --profile NAME] [--only a,b] [--dry-run]
+  qstack status    claude|pi [--dir DIR | --profile NAME]
+  qstack uninstall claude|pi [--dir DIR | --profile NAME] [--only a,b] [--dry-run]
+
+A harness gets every skill in shared/ plus every skill in its own folder, each as one symlink.
+Default DIR is ~/.claude/skills for claude; pi needs --profile (~/.config/pi/profiles/NAME/skills)
+or --dir. install never replaces something that is not already a link into this repository.
+"""
+import argparse
+import os
+import re
+import subprocess
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+HARNESSES = ("claude", "pi")
+NAME_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
+LINK_RE = re.compile(r"`((?:\.\./)*[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)+\.(?:md|yaml|py)|bin/[a-z-]+)`")
+HARNESS_REF_RE = re.compile(r"`(harness-[a-z-]+)`")
+
+
+def skills_in(folder):
+    base = ROOT / folder
+    return {p.name: p for p in sorted(base.iterdir()) if p.is_dir()} if base.is_dir() else {}
+
+
+def frontmatter(path):
+    text = path.read_text()
+    if not text.startswith("---\n") or "\n---\n" not in text[4:]:
+        return None
+    block = text[4:text.index("\n---\n", 4)]
+    fields, key = {}, None
+    for line in block.splitlines():
+        match = re.match(r"^([A-Za-z_-]+):\s*(.*)$", line)
+        if match and not line.startswith(" "):
+            key = match.group(1)
+            fields[key] = match.group(2).strip()
+        elif key and line.startswith(" "):
+            fields[key] = (fields[key] + " " + line.strip()).strip()
+    for key, value in fields.items():
+        if len(value) >= 2 and value[0] == value[-1] and value[0] in "\"'":
+            fields[key] = value[1:-1]
+    return fields
+
+
+def check():
+    errors = []
+    shared = skills_in("shared")
+    per_harness = {h: skills_in(h) for h in HARNESSES}
+    for folder, skills in [("shared", shared)] + list(per_harness.items()):
+        for name, path in skills.items():
+            where = f"{folder}/{name}"
+            skill_md = path / "SKILL.md"
+            if not skill_md.is_file():
+                errors.append(f"{where}: missing SKILL.md")
+                continue
+            for md in path.rglob("SKILL.md"):
+                rel = md.relative_to(ROOT)
+                fields = frontmatter(md)
+                if fields is None:
+                    errors.append(f"{rel}: missing frontmatter")
+                    continue
+                if fields.get("name") != md.parent.name:
+                    errors.append(f"{rel}: name `{fields.get('name')}` does not match its folder")
+                if not NAME_RE.match(fields.get("name", "")) or len(fields.get("name", "")) > 64:
+                    errors.append(f"{rel}: invalid skill name")
+                desc = fields.get("description", "")
+                if not desc or len(desc) > 1024:
+                    errors.append(f"{rel}: description must be 1-1024 characters")
+                if "type: procedure" not in md.read_text() and "type: guideline" not in md.read_text():
+                    errors.append(f"{rel}: metadata.type must be procedure or guideline")
+    names = [set(per_harness[h]) for h in HARNESSES]
+    if names[0] != names[1]:
+        errors.append(f"claude/ and pi/ must offer the same skill names; differing: "
+                      f"{sorted(names[0] ^ names[1])}")
+    for h in HARNESSES:
+        for clash in sorted(set(shared) & set(per_harness[h])):
+            errors.append(f"`{clash}` exists in both shared/ and {h}/")
+    # Links are checked in the installed view: shared and one harness as sibling directories.
+    for h in HARNESSES:
+        view = {**shared, **per_harness[h]}
+        for name, path in view.items():
+            for md in path.rglob("*.md"):
+                text = md.read_text()
+                for ref in HARNESS_REF_RE.findall(text):
+                    if ref not in per_harness[h]:
+                        errors.append(f"{md.relative_to(ROOT)}: names `{ref}`, absent from {h}/")
+                for link in LINK_RE.findall(text):
+                    parts = Path(link).parts
+                    ups = sum(1 for part in parts if part == "..")
+                    here = md.parent.relative_to(path).parts
+                    if ups > len(here) + 1:
+                        continue
+                    if ups == len(here) + 1:
+                        target_skill = parts[ups] if len(parts) > ups else ""
+                        target = view.get(target_skill)
+                        resolved = target.joinpath(*parts[ups + 1:]) if target else None
+                    else:
+                        resolved = md.parent.joinpath(*parts)
+                        if not resolved.exists() and ups == 0:
+                            resolved = path.joinpath(*parts)
+                    if resolved is None or not resolved.exists():
+                        errors.append(f"{md.relative_to(ROOT)} ({h} view): broken link `{link}`")
+    for error in sorted(set(errors)):
+        print(f"error: {error}")
+    total = len(shared) + sum(len(v) for v in per_harness.values())
+    print(f"{total} skills checked, {len(set(errors))} errors")
+    return 1 if errors else 0
+
+
+def target_dir(args):
+    if args.dir:
+        return Path(args.dir).expanduser()
+    if args.harness == "claude":
+        return Path.home() / ".claude" / "skills"
+    if args.profile:
+        return Path.home() / ".config" / "pi" / "profiles" / args.profile / "skills"
+    sys.exit("qstack: pi needs --profile NAME or --dir DIR")
+
+
+def selected(args):
+    skills = {**skills_in("shared"), **skills_in(args.harness)}
+    if getattr(args, "only", None):
+        wanted = [n for n in args.only.split(",") if n]
+        unknown = [n for n in wanted if n not in skills]
+        if unknown:
+            sys.exit(f"qstack: unknown skills for {args.harness}: {', '.join(unknown)}")
+        skills = {n: skills[n] for n in wanted}
+    return skills
+
+
+def state(link, source):
+    if link.is_symlink():
+        dest = Path(os.path.realpath(link))
+        if dest == source.resolve():
+            return "linked"
+        return "stale" if ROOT in dest.parents else "foreign-link"
+    return "conflict" if link.exists() else "missing"
+
+
+def install(args):
+    dest = target_dir(args)
+    conflicts = 0
+    if not args.dry_run:
+        dest.mkdir(parents=True, exist_ok=True)
+    for name, source in selected(args).items():
+        link, what = dest / name, state(dest / name, source)
+        if what == "linked":
+            print(f"ok        {name}")
+        elif what in ("missing", "stale"):
+            if not args.dry_run:
+                tmp = dest / f".{name}.qstack-tmp"
+                os.symlink(source, tmp)
+                os.replace(tmp, link)
+            print(f"{'relinked' if what == 'stale' else 'linked':9} {name} -> {source}")
+        else:
+            conflicts += 1
+            print(f"CONFLICT  {name}: {link} exists and is not a QStack link; left untouched")
+    if conflicts:
+        print(f"{conflicts} conflicts. Move the existing copy out of its owner (chezmoi or "
+              f"otherwise), then install again.")
+    return 1 if conflicts else 0
+
+
+def status(args):
+    dest = target_dir(args)
+    for name, source in selected(args).items():
+        print(f"{state(dest / name, source):12} {name}")
+    return 0
+
+
+def uninstall(args):
+    dest = target_dir(args)
+    for name, source in selected(args).items():
+        link = dest / name
+        if state(link, source) in ("linked", "stale"):
+            if not args.dry_run:
+                subprocess.run(["trash-put", "--", str(link)], check=True)
+            print(f"unlinked  {name}")
+    return 0
+
+
+def main():
+    parser = argparse.ArgumentParser(prog="qstack", description=__doc__,
+                                     formatter_class=argparse.RawDescriptionHelpFormatter)
+    sub = parser.add_subparsers(dest="cmd", required=True)
+    sub.add_parser("check")
+    for cmd in ("install", "status", "uninstall"):
+        p = sub.add_parser(cmd)
+        p.add_argument("harness", choices=HARNESSES)
+        p.add_argument("--dir")
+        p.add_argument("--profile")
+        if cmd != "status":
+            p.add_argument("--only")
+            p.add_argument("--dry-run", action="store_true")
+    args = parser.parse_args()
+    return {"check": lambda a: check(), "install": install, "status": status,
+            "uninstall": uninstall}[args.cmd](args)
+
+
+if __name__ == "__main__":
+    sys.exit(main())

@@ -1,0 +1,41 @@
+# Council roster. Edit this file to change who sits on the council.
+#
+# A seat is one voice. A seat with several models runs all of them on the same brief, merges
+# their findings into one seat response, and logs how the models compared.
+#
+# tier:
+#   voting  - blocking. The round waits for it; its verdict counts toward convergence.
+#   jester  - advisory. Never waited for, never scored, never counted. Its findings are leads
+#             that only matter once the coordinator has verified them.
+#
+# model:  matched against the labels/ids `orchestrator_capabilities` lists (for example
+#         `gpt-6.2-sol` matches `cliproxyapi/gpt-6.2-sol`). Never substituted.
+# provider: optional preferred provider instance when several list the model.
+# effort: mapped onto whichever reasoning option that provider exposes (`effort`, `thinking`).
+
+limits:
+  rounds_per_attempt: 3   # review rounds before the current architecture is abandoned
+  max_attempts: 3         # the first architecture plus two re-architectures
+  min_voting_seats: 2     # fewer staffed voting seats than this: stop and report
+
+seats:
+  - id: sol
+    tier: voting
+    models:
+      - { model: gpt-6.2-sol, effort: high }
+      - { model: gpt-6.1-sol, effort: high }
+
+  - id: claude
+    tier: voting
+    models:
+      - { model: claude-opus-5-5, effort: high }
+
+  - id: muse
+    tier: voting
+    models:
+      - { model: muse-ember, effort: high }
+
+  - id: glm
+    tier: jester
+    models:
+      - { model: glm-5.3, provider: opencode-go, effort: high }

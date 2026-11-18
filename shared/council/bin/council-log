@@ -1,0 +1,181 @@
+#!/usr/bin/env python3
+"""Append and summarize council round records.
+
+Usage:
+  council-log path                  print the log directory
+  council-log record FILE|-         validate one round record (JSON) and append it
+  council-log summary [--json]      per-model totals across every recorded round
+
+Records live in ${QSTACK_STATE:-${XDG_STATE_HOME:-~/.local/state}/qstack}/council/rounds.jsonl.
+"""
+import datetime
+import json
+import os
+import sys
+from pathlib import Path
+
+OUTCOMES = {"continue", "converged", "rearchitect", "stalled", "consult"}
+TIERS = {"voting", "jester"}
+COUNTS = ("raised", "confirmed", "refuted", "unique", "missed")
+
+
+def log_dir():
+    root = os.environ.get("QSTACK_STATE")
+    if not root:
+        state = os.environ.get("XDG_STATE_HOME") or str(Path.home() / ".local" / "state")
+        root = str(Path(state) / "qstack")
+    return Path(root) / "council"
+
+
+def validate(rec):
+    errors = []
+
+    def need(obj, key, kind, where):
+        if not isinstance(obj.get(key), kind) or isinstance(obj.get(key), bool):
+            errors.append(f"{where}: `{key}` must be {kind.__name__}")
+            return False
+        return True
+
+    if not isinstance(rec, dict):
+        return ["record must be a JSON object"]
+    for key in ("run", "subject", "mode"):
+        need(rec, key, str, "record")
+    for key in ("attempt", "round"):
+        if need(rec, key, int, "record") and rec[key] < 1:
+            errors.append(f"record: `{key}` starts at 1")
+    if rec.get("outcome") not in OUTCOMES:
+        errors.append(f"record: `outcome` must be one of {sorted(OUTCOMES)}")
+    seats = rec.get("seats")
+    if not isinstance(seats, list) or not seats:
+        return errors + ["record: `seats` must be a non-empty list"]
+    for seat in seats:
+        if not isinstance(seat, dict) or not isinstance(seat.get("seat"), str):
+            errors.append("seat: each seat needs a string `seat` id")
+            continue
+        where = f"seat {seat['seat']}"
+        if seat.get("tier") not in TIERS:
+            errors.append(f"{where}: `tier` must be one of {sorted(TIERS)}")
+        models = seat.get("models")
+        if not isinstance(models, list) or not models:
+            errors.append(f"{where}: `models` must be a non-empty list")
+            continue
+        names = []
+        for model in models:
+            if not isinstance(model, dict) or not isinstance(model.get("model"), str):
+                errors.append(f"{where}: each model needs a string `model`")
+                continue
+            names.append(model["model"])
+            if model.get("absent"):
+                continue
+            mwhere = f"{where}/{model['model']}"
+            for key in COUNTS:
+                if need(model, key, int, mwhere) and model[key] < 0:
+                    errors.append(f"{mwhere}: `{key}` cannot be negative")
+            if all(isinstance(model.get(k), int) for k in ("raised", "confirmed", "refuted")):
+                if model["confirmed"] + model["refuted"] > model["raised"]:
+                    errors.append(f"{mwhere}: confirmed + refuted exceeds raised")
+                if isinstance(model.get("unique"), int) and model["unique"] > model["confirmed"]:
+                    errors.append(f"{mwhere}: unique exceeds confirmed")
+            score = model.get("score")
+            if score is not None and not (isinstance(score, (int, float)) and 0 <= score <= 10):
+                errors.append(f"{mwhere}: `score` must be null or 0-10")
+        better = seat.get("better")
+        if better is not None and better != "tie" and better not in names:
+            errors.append(f"{where}: `better` must be `tie` or one of its models")
+        if better is not None and len(names) < 2:
+            errors.append(f"{where}: `better` only applies to a seat with several models")
+    return errors
+
+
+def read_rounds():
+    path = log_dir() / "rounds.jsonl"
+    if not path.exists():
+        return []
+    return [json.loads(line) for line in path.read_text().splitlines() if line.strip()]
+
+
+def summarize(rounds):
+    stats = {}
+    for rec in rounds:
+        for seat in rec["seats"]:
+            answered = [m for m in seat["models"] if not m.get("absent")]
+            for model in seat["models"]:
+                s = stats.setdefault(model["model"], {
+                    "model": model["model"], "tiers": set(), "rounds": 0, "absent": 0,
+                    **{k: 0 for k in COUNTS}, "scores": [], "paired": 0, "better": 0, "ties": 0})
+                s["tiers"].add(seat["tier"])
+                if model.get("absent"):
+                    s["absent"] += 1
+                    continue
+                s["rounds"] += 1
+                for key in COUNTS:
+                    s[key] += model[key]
+                if model.get("score") is not None:
+                    s["scores"].append(model["score"])
+                if len(answered) > 1 and seat.get("better"):
+                    s["paired"] += 1
+                    if seat["better"] == "tie":
+                        s["ties"] += 1
+                    elif seat["better"] == model["model"]:
+                        s["better"] += 1
+    out = []
+    for s in sorted(stats.values(), key=lambda s: s["model"]):
+        s["tiers"] = sorted(s["tiers"])
+        s["precision"] = round(s["confirmed"] / s["raised"], 2) if s["raised"] else None
+        s["avg_score"] = round(sum(s["scores"]) / len(s["scores"]), 1) if s["scores"] else None
+        del s["scores"]
+        out.append(s)
+    return out
+
+
+def main(argv):
+    if len(argv) < 2 or argv[1] in ("-h", "--help"):
+        print(__doc__.strip())
+        return 0 if len(argv) >= 2 else 2
+    cmd = argv[1]
+    if cmd == "path":
+        print(log_dir())
+        return 0
+    if cmd == "record" and len(argv) == 3:
+        raw = sys.stdin.read() if argv[2] == "-" else Path(argv[2]).read_text()
+        try:
+            rec = json.loads(raw)
+        except json.JSONDecodeError as exc:
+            print(f"council-log: not valid JSON: {exc}", file=sys.stderr)
+            return 1
+        errors = validate(rec)
+        if errors:
+            print("council-log: record rejected:\n  " + "\n  ".join(errors), file=sys.stderr)
+            return 1
+        rec.setdefault("date", datetime.date.today().isoformat())
+        log_dir().mkdir(parents=True, exist_ok=True)
+        with (log_dir() / "rounds.jsonl").open("a") as handle:
+            handle.write(json.dumps(rec, sort_keys=True) + "\n")
+        print(f"recorded {rec['run']} attempt {rec['attempt']} round {rec['round']}")
+        return 0
+    if cmd == "summary":
+        rows = summarize(read_rounds())
+        if "--json" in argv[2:]:
+            print(json.dumps(rows, indent=2))
+            return 0
+        if not rows:
+            print("no rounds recorded")
+            return 0
+        head = ("model", "tier", "rounds", "raised", "confirmed", "refuted", "precision",
+                "unique", "missed", "avg score", "better/paired", "absent")
+        table = [head] + [(
+            r["model"], ",".join(r["tiers"]), r["rounds"], r["raised"], r["confirmed"],
+            r["refuted"], "-" if r["precision"] is None else r["precision"], r["unique"],
+            r["missed"], "-" if r["avg_score"] is None else r["avg_score"],
+            f"{r['better']}/{r['paired']}" + (f" ({r['ties']} tie)" if r["ties"] else ""),
+            r["absent"]) for r in rows]
+        widths = [max(len(str(row[i])) for row in table) for i in range(len(head))]
+        for row in table:
+            print("  ".join(str(cell).ljust(widths[i]) for i, cell in enumerate(row)).rstrip())
+        return 0
+    print(__doc__.strip(), file=sys.stderr)
+    return 2
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv))
