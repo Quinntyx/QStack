@@ -1,7 +1,8 @@
 ---
 name: project-plan
-description: "Use when planning a new project before it exists: writing or revising its PLAN.md. Not for documenting a system that already works, and not
-  for agent operating guidance (use agent-repo-guidance)."
+description: "Use when planning work before it is built, mostly a new project or a large new
+  addition to an existing one: writing or revising PLAN.md. Not for documenting a system that
+  already works, and not for agent operating guidance (use agent-repo-guidance)."
 metadata:
   type: procedure
 ---
@@ -26,6 +27,9 @@ metadata:
 `PLAN.md` describes work that has not merged yet, and nothing else. When a part merges, that part
 is deleted from the file. When the file is empty it is deleted too, and the plan is done. After
 that the project grows one PR at a time with no plan file.
+
+The plan is mostly for a new project or a large new addition, where there is more to build than
+one PR holds. It works the same way wherever it is used.
 
 The file never describes behavior that already exists. The code does that, and a second copy in
 prose goes stale and misleads the next agent that reads it. So there is no `ARCHITECTURE.md` kept
