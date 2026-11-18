@@ -16,9 +16,10 @@ layout. Author skills with the `create-skill` skill.
   ground and may appear in `shared/`.
 - Model names, efforts and provider routing belong in `shared/subagents/model-selection` and the
   council's Panels section, not scattered through other skills.
-- Keep skills small and in plain words, in the Contract/Entrypoint shape `create-skill` defines.
-  Prefer a sentence the user can edit to a config file or a helper script; skills carry no
-  `bin/` directories.
+- Write skills as loose, plain-English descriptions of what is wanted, in the Contract/Entrypoint
+  shape `create-skill` defines. Do not pile on guards, templates and edge-case procedure. Line
+  count is not the measure: a skill is as long as its content needs. Prefer a sentence the user
+  can edit to a config file or a helper script; skills carry no `bin/` directories.
 - Prose in this repository follows the `deslop` skill.
 
 ## Checks
