@@ -19,6 +19,11 @@ metadata:
 - Use a "workflow" only when the user asks for one. Pi session commands and shell worktrees are
   not substitutes for T3 allocation.
 
+# Which provider runs a model
+
+- With `delegate_task`: Claude models on the Claude Code provider, **all other models on Pi**
+  (the Pi T3Main provider), even when the Claude Code provider also lists them.
+
 # Waiting
 
 - Pi cannot hold a turn open for background children. For a start-only child, follow the returned

@@ -50,10 +50,8 @@ metadata:
 2. Group equivalent catalog entries by underlying model and inference variant. Match explicit
    identities exactly against the listing; prefer the Current model roster's tier mapping when an
    identity is recognized, and treat unrecognized families conservatively.
-3. Choose the provider for the chosen model and variant. When this thread's own provider offers the
-   chosen model and no user setting requires otherwise, prefer it: a child under the same
-   provider/model with no extra settings may also run through the native child mechanism instead
-   of `delegate_task`. A named provider must appear in the listing to be used.
+3. Choose the provider by Provider routing below. A provider the user names wins, and must
+   appear in the listing to be used.
 4. If no provider offers the needed identity, and no peer at the required tier offers a qualified
    substitute, go to Stage 5: Record with the unavailable-identity blocker. Do not silently
    downgrade or change provider unasked.
@@ -143,10 +141,30 @@ metadata:
   unavailable, and an unmapped family is qualified conservatively before use at a tier.
 - Focused tier: GLM 5.3 Flash, DeepSeek V4.1 Flash, MiMo V2.6 Flash when listed.
 - Frontier tier: GPT 6.1 Sol and equivalent frontier engineering models when listed.
-- Review panels are staffed from `../../council/roster.yaml`, not from this list.
+- Council panels are staffed from the Panels section of `../../council/SKILL.md`.
 - When this thread inherits a capable default (a focused-tier model such as DeepSeek V4.1 Flash),
   simple delegation inherits it. Promotion to the frontier tier needs the frontier
   roster or an explicit user choice.
+
+# Provider routing
+
+- With `delegate_task`, Claude models run on the Claude Code provider and **every other model
+  runs on Pi** (the Pi T3Main provider), even when the Claude Code provider also lists it.
+- Inside a native dynamic workflow in Claude Code, every model runs inside Claude Code, the
+  non-Claude ones included. The preference for Pi is not worth breaking the seamless, long-running
+  operation of a workflow.
+
+# Effort by model
+
+These override the role defaults below.
+
+- DeepSeek: max, always.
+- GPT 6.1 Sol: xhigh, always.
+- GPT 6.2 Sol: high, except in a council, where its effort is swept (see the council's Sol seat).
+  Never max.
+- Claude Fable 5.2: medium or high. High for design and hard reasoning, medium otherwise.
+- GPT 6.2 Astra: high until an effort is settled; say which one you used.
+- Any other model: the role default.
 
 # Role defaults
 

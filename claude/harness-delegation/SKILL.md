@@ -19,6 +19,14 @@ metadata:
   delegates. Use `Workflow` only when the user explicitly asks for one. A native skill grants no
   extra authority.
 
+# Which provider runs a model
+
+- With `delegate_task`: Claude models on the Claude Code provider, **all other models on Pi**
+  (the Pi T3Main provider), even when the Claude Code provider also lists them.
+- Inside a native dynamic workflow (`Workflow`): every model runs inside Claude Code, non-Claude
+  models included. The preference for Pi is not worth breaking the seamless, long-running
+  operation of a workflow.
+
 # T3 tools
 
 - T3 MCP tools are deferred: discover them with `ToolSearch` and read the actual schemas. The T3

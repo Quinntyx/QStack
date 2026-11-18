@@ -1,64 +1,108 @@
 # QStack
 
-The agent skills I use every day in T3 Code, kept apart from my system configuration.
-Inspired by [tstack](https://github.com/t3dotgg/tstack) and
-[pstack](https://github.com/cursor/plugins/tree/main/pstack).
+The agent skills I use in T3 Code, under both Claude Code and Pi. They live in this repository
+so that changing a skill does not mean changing my dotfiles.
+
+The idea comes from Theo's [tstack](https://github.com/t3dotgg/tstack) and Poteto's
+[pstack](https://github.com/cursor/plugins/tree/main/pstack). `full-send` and `full-stop` began
+as tstack's, and `reflect` as pstack's.
+
+## What you can say
+
+| Say | What the agent does |
+| --- | --- |
+| "full stop" | Finishes the change, proves it works, gets it reviewed, opens a PR and watches CI until the PR is ready to merge. It never merges. |
+| "full send" | Everything "full stop" does, then merges the PR. |
+| "council" | Sends a change to a panel of other models and fixes what they find, round after round, until every seat scores it 9 or higher. Before any code exists, the same word asks a second panel which architecture to build. |
+| "council 9.5" | The same review with the target raised to 9.5. |
+| "reflect" | Reads the conversation for corrections I made and proposes an edit to the skill each one belongs to. Nothing changes until I approve it. |
+
+The phrases combine. "Build the importer, full send, council 9.5" builds the importer, uses the
+council as its review, and merges once the council and CI have both passed.
+
+The rest load when the work calls for them:
+
+| Skill | Covers |
+| --- | --- |
+| `subagents` | How to split work across child agents, brief them and accept their results. Its `model-selection` child decides which model runs where and at what effort. |
+| `estimate-time` | How long agent work takes, from measured runs. |
+| `runtime-verification` | How much evidence a change needs before it counts as proven. |
+| `git` | Branches, pull requests, issues, new repositories and GitHub mirrors. |
+| `create-skill` | Writing a skill and rehearsing it on a cheaper model. |
+| `edit-config` | Changing configuration through the source that owns it. |
+| `agent-repo-guidance` | Writing a repository's `AGENTS.md` or `CLAUDE.md`. |
+| `project-plan` | Plans and architecture documents. |
+| `deslop` | Writing English that does not read as machine output. This README was written with it. |
+
+## How the council works
+
+There are two panels, and the subject picks between them. A diff goes to the review panel: GPT
+6.2 Sol and GPT 6.1 Sol sharing one seat, Claude Opus 5.5, and Muse Ember. A question about how
+to build something goes to the design panel, Claude Fable 5.2 and GPT 6.2 Astra, which cost too
+much to spend on routine review.
+
+The two panels are briefed in opposite ways. Reviewers receive the diff, my request and the
+decisions the agent made, so they explore the code themselves and do not inherit the agent's
+assumptions. The design panel receives everything the agent found, so the expensive models spend
+their tokens on the decision and not on reading the repository.
+
+A design gets three review rounds. If the panel still will not pass it, the agent stops patching,
+saves the attempt on a branch, asks the design panel which architecture it would approve, and
+rebuilds from the base revision. After two rebuilds it stops and shows me the disagreement.
+
+GLM 5.3 sits on the review panel as a jester. Its findings count only after the agent has
+confirmed them, and nobody waits for it.
+
+Each council reply ends with tagged lines: `sol_comparison` records how the two Sol models did
+against each other and which effort 6.2 ran at, `glm_review` records what GLM contributed, and
+`glm_flub` quotes anything it said that was funny. Searching T3 Code threads for a tag collects
+them.
+
+To change who sits on a panel, edit the Panels section at the end of
+[`shared/council/SKILL.md`](shared/council/SKILL.md). It is written as sentences.
 
 ## Layout
 
 ```
 shared/   skills that read the same in every harness
-claude/   Claude Code bindings
-pi/       Pi bindings (the T3 profile)
-bin/      qstack: check the repo, link skills into a harness
-tests/    python3 -m unittest discover -s tests
+claude/   Claude Code versions of the harness skills
+pi/       Pi versions of the harness skills
+bin/      qstack, which checks the repository and installs the skills
+tests/    tests for qstack
 ```
 
-A shared skill never describes harness mechanics. Where behavior differs it names a
-`harness-*` skill, and `claude/` and `pi/` each supply a skill under that same name. A harness
-installs `shared/` plus its own folder, so the name resolves to the right binding.
+A shared skill does not describe how a harness works. Where the harnesses differ, it names one
+of three skills, and `claude/` and `pi/` each hold a skill with that name. A harness installs
+`shared/` plus its own folder, so the name resolves to the version written for it.
 
-| Named skill | Claude Code | Pi |
+| Skill | In Claude Code | In Pi |
 | --- | --- | --- |
-| `harness-delegation` | native Agent or T3 `delegate_task`, `/code-review` | always T3 `delegate_task` |
-| `harness-config` | settings, skill roots, `/update-config`, `/init` | profiles, loader rules, packages |
-| `harness-verification` | native `/verify` | direct reproduce, trace, repair, verify |
-
-## Skills
-
-| Skill | Say | What it does |
-| --- | --- | --- |
-| `full-send` | "full send" | Takes a change to a merged PR with nobody watching. |
-| `full-stop` | "full stop" | Same, but stops with the PR ready for me to merge. |
-| `council` | "council" | Review from a roster of models: paired models merged into one seat and compared, jesters as non-blocking advisors, bounded rounds, and a re-architecture when the council will not converge. |
-| `subagents` | (automatic) | Delegation shape, briefs, acceptance; `model-selection` picks child models. |
-| `estimate-time` | (automatic) | Measured durations for agent work. |
-| `runtime-verification` | (automatic) | Evidence tiers for proving a change. |
-| `git` | (automatic) | Repositories, branches, PRs, issues, project init, mirroring. |
-| `create-skill` | (automatic) | Authoring and rehearsing skills. |
-| `edit-config` | (automatic) | Persistent configuration through its owning source. |
-| `agent-repo-guidance` | (automatic) | AGENTS.md / CLAUDE.md for a repository. |
-| `project-plan` | (automatic) | Plans and architecture documents. |
-
-### Council
-
-Edit `shared/council/roster.yaml` to change who sits. A seat with several models (GPT 6.2 Sol
-and 6.1 Sol today) is one voice: both review, their findings merge, and every round logs which
-did better and what each missed. `shared/council/bin/council-log summary` totals that across runs.
+| `harness-delegation` | Native subagents or T3 `delegate_task`; `/code-review` for reviews | T3 `delegate_task` for every child |
+| `harness-config` | Settings, skill directories, `/update-config`, `/init` | Profiles, skill discovery, packages |
+| `harness-verification` | The native `/verify` workflow | Reproduce, trace, repair and verify by hand |
 
 ## Install
 
 ```sh
-bin/qstack check                              # validate names, pairs and links
-bin/qstack install claude --dry-run           # ~/.claude/skills
-bin/qstack install pi --profile t3main        # ~/.config/pi/profiles/t3main/skills
-bin/qstack install claude --only council,harness-delegation
+git clone https://git.quinntyx.dev/quinntyx/QStack.git
+cd QStack
+bin/qstack install claude                  # links into ~/.claude/skills
+bin/qstack install pi --profile t3main     # links into ~/.config/pi/profiles/t3main/skills
 bin/qstack status claude
 ```
 
-Each skill becomes one symlink. `install` refuses to replace anything that is not already a
-QStack link, so a copy still owned by chezmoi shows up as a conflict instead of being overwritten.
+Each skill becomes one symlink, so an edit here takes effect in the next session. `install`
+leaves alone anything that is not already a QStack link and reports it as a conflict.
 
-## Credits
+These skills assume my setup: T3 Code for delegation, Forgejo at `git.quinntyx.dev`, chezmoi
+for dotfiles. Fork the repository and edit the skills to match yours.
 
-`full-send`, `full-stop` and the starting point for `council` come from tstack (MIT, Theo Browne).
+## Checks
+
+```sh
+bin/qstack check
+python3 -m unittest discover -s tests
+```
+
+`check` confirms that every skill has valid frontmatter, that `claude/` and `pi/` offer the same
+names, and that every relative link resolves once installed.

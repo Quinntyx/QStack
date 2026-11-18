@@ -21,7 +21,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 HARNESSES = ("claude", "pi")
 NAME_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
-LINK_RE = re.compile(r"`((?:\.\./)*[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)+\.(?:md|yaml|py)|bin/[a-z-]+)`")
+LINK_RE = re.compile(r"`((?:\.\./)*[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)+\.(?:md|yaml|py))`")
 HARNESS_REF_RE = re.compile(r"`(harness-[a-z-]+)`")
 
 

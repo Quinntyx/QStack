@@ -14,9 +14,12 @@ layout. Author skills with the `create-skill` skill.
   reference harness skills by name only, because the relative path differs per harness.
 - `pi/` targets Pi running inside T3 Code. T3 MCP tools (`delegate_task` and the like) are shared
   ground and may appear in `shared/`.
-- Model names belong in `shared/council/roster.yaml` and `shared/subagents/model-selection`, not
-  scattered through other skills.
-- Scripts delete with `trash-put`, never `rm`.
+- Model names, efforts and provider routing belong in `shared/subagents/model-selection` and the
+  council's Panels section, not scattered through other skills.
+- Keep skills small and in plain words, in the Contract/Entrypoint shape `create-skill` defines.
+  Prefer a sentence the user can edit to a config file or a helper script; skills carry no
+  `bin/` directories.
+- Prose in this repository follows the `deslop` skill.
 
 ## Checks
 

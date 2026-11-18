@@ -1,8 +1,7 @@
 ---
 name: full-stop
-description: "Use when the user says 'full stop', even as closing emphasis — run the
-  task autonomously like 'full send', but leave the PR ready for the user to merge.
-  Never merge."
+description: "Use when the user says 'full stop', even as closing emphasis — finish the task
+  autonomously through a ready-to-merge PR, then hand off without merging."
 metadata:
   type: procedure
 ---
@@ -11,59 +10,80 @@ metadata:
 
 ## Input Contract
 
-- A user request explicitly containing "full stop", plus the current work state (branch, diff, PR).
-- The same repository access and authority as `full-send`, minus merge permission.
-- Read `../full-send/SKILL.md` first; this skill inherits its workflow, proof, review, and
-  babysitting steps.
+- A request containing "full stop", plus the current work state (branch, diff, PR).
+- Push rights on the repository and visibility of its CI and reviews.
+- `full-send` reuses stages 2–6 with its own grant, then merges instead of handing off.
 
 ## Output Contract
 
-- The PR open and unmerged, ready per full-send's merge gate, or a blocked state with one focused
-  question.
-- A handoff report naming the PR link, final head, verdict, proof, reviewer outcome, remaining
-  risks, and whether the PR is still open and unmerged.
-- No PR watch left active after handing off.
+- The PR open, unmerged and ready per the Readiness gate, or a blocked state with one question.
+- A handoff naming the PR link, final head, verdict, proof, review outcome, remaining risks and
+  the decisions you made for the user.
+- No PR watch left active.
 
 # Entrypoint
 
 ## Stage 1: Grant and boundary
 
-An explicit "full stop" request authorizes full-send's workflow — including its testing
-permission for the methods proof needs (computer use, browser automation, simulators and
-devices, dev servers, screenshots, visual checks) even when a project file says to ask
-first. Its merge permission does not apply. The overrides below take precedence.
+The user is not watching this thread. Own the work and decide what you can yourself.
 
-## Stage 2: No merging
+"Full stop" grants, for this task only: committing, pushing, rebasing and `--force-with-lease` on
+the task's own branch, and any test method proof needs without asking first — computer use,
+browser automation, simulators, running the app or a dev server, screenshots. That replaces an
+ask-first rule in a project file; rules naming the right command or fixture still apply.
 
-You may commit, push, rebase, fix conflicts, and use `--force-with-lease` on this task's
-branch. Never merge, enable auto-merge, enter a merge queue, push to the default branch,
-bypass branch protection, or delegate those actions.
+It does not grant merging, deleting data, touching production, changing anything outside the
+repository, closing the PR, force-pushing another branch or bypassing an approval prompt. Never
+merge, enable auto-merge, enter a merge queue or push to the default branch. Turn off existing
+auto-merge before you start, check again before each push, and report it.
 
-Disable existing auto-merge and remove the PR from any merge queue before work begins;
-check again before each push. Report these changes. If you cannot prevent automatic
-merging, report the blocker before proceeding.
+## Stage 2: Finish the change
 
-## Stage 3: Work and prove
+Complete the goal with the smallest change that works. Fix the case that happened, not every case
+that could. On the default branch, pick the task branch with `../git/SKILL.md` first. If the user
+asked for a council and the task turns on an architecture choice, take that choice to the
+`council` skill's design panel before building. Parallel work follows `../subagents/SKILL.md`.
 
-Follow full-send's stages 2–6: finish the change, prove every change, get review, file
-the PR, and babysit it. Proof and review must cover the final diff; recheck behavior
-changes and meaningful conflict fixes before handoff.
+## Stage 3: Prove it
 
-## Stage 4: Stop at the gate
+Every change in the diff maps to evidence you observed yourself in this session: a reproduction
+that failed and now passes, the checks CI runs, the app running with the change in it. Use
+`../runtime-verification/SKILL.md` to pick how much evidence the change needs. Green mocked tests
+do not prove a UI works. If you cannot prove a change, ask.
 
-Use full-send's merge gate as the readiness check, replacing its merge and report steps
-with a handoff. Fetch the target branch and check the live PR's head, base, checks,
-reviews, and mergeability. Confirm it is open, not a draft, and not set to merge without
-the user. If someone else merged it, report that instead.
+## Stage 4: Review
 
-- **Ready to merge:** the merge gate passes. Leave the PR open and unmerged.
-- **Waiting for required approval:** only human approval remains. Confirm that this is
-  the actual blocker.
-- **Blocked:** explain what prevents readiness, what you tried, and what is needed.
-  Follow full-send's rules for asking the user.
+Get one independent review and fix its real findings, with proof for each fix. If the user said
+"council", the `council` skill is the review, and a number after it ("council 9.5") is the score
+it must reach. Otherwise use the review route the `harness-delegation` skill names. Review must
+cover the final diff.
 
-## Stage 5: Hand off
+## Stage 5: File the PR
 
-In T3 Code, call `unwatch_pull_request` before the handoff or a question. Report the PR
-link, final head, verdict, proof, reviewer outcome, and remaining risks. State whether
-the PR is still open and unmerged.
+Rebase onto the latest default branch. The description states the change and one line on how you
+proved it. `../git/pr/SKILL.md` owns the details.
+
+## Stage 6: Babysit to readiness
+
+Fix findings and CI failures until the Readiness gate passes. If you end your turn while checks
+are pending, nothing wakes you: in T3 Code call `watch_pull_request` first. Then read the live PR
+and name the verdict: **ready**, **waiting for required human approval**, or **blocked**.
+
+## Stage 7: Hand off
+
+Leave the PR open and unmerged. Call `unwatch_pull_request`, then report per the Output Contract
+and say plainly that the PR is still open.
+
+# Readiness gate
+
+All true on the latest commit: your proof covers every change; required checks are green; review
+bots have finished and each finding is fixed or dismissed with a reason; no human review requests
+changes; the branch is up to date and the host calls it mergeable; the PR is open and not a draft.
+
+# Asking the user
+
+Ask only when you cannot continue alone: you cannot prove the change, the gate cannot pass, the
+next step is outside the grant, the goal is ambiguous in a way that changes the result, or another
+PR makes this one obsolete. Unwatch the PR, then end your turn with the question as the final
+message: the PR link, what blocks you, and the options with your recommendation first. Decide
+everything else yourself and list those decisions in the report.
