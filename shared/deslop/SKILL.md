@@ -68,9 +68,11 @@ it. Product copy does the opposite: it addresses "you", promises an outcome and 
 tagline. If a sentence sounds like a landing page, it is slop even when every word is true.
 Plain and a little uneven beats polished.
 
-A voice is not a licence to make things up. Never write "I made this because I wanted X"
-unless the author said so or it is plain from what they built. Use the wants they gave you, and
-if none of them would mean anything to this reader, write without one.
+A voice is not a licence to make things up: do not give the author a want or a history they
+do not have. Reading between the lines is different and is part of writing well. If the author
+talks about stacking subscriptions, saying "a month" is a fair reading, and so is turning a
+rant into the plain want underneath it. Infer what a careful listener would infer, and when a
+guess would change the meaning, ask.
 
 # Make every sentence checkable
 
@@ -79,8 +81,9 @@ words does not fix that; the sentence needs the fact.
 
 - Replace a vague claim with the fact behind it: the number, the name, the command, the
   mechanism. "Much faster" becomes "builds in 4 seconds, down from 30".
-- If you do not have the fact, cut the sentence. Never invent a number, example, anecdote or
-  quotation to make the prose livelier: an invented detail reads as a fact.
+- If you do not have the fact and cannot fairly infer it, cut the sentence. Do not invent a
+  number, example, anecdote or quotation to make the prose livelier: an invented detail reads
+  as a fact.
 - A sentence that could sit unchanged in another project's documentation says nothing. Make it
   specific to this one or delete it.
 - Describe what a thing does. Leave out what it means, how important it is and how the reader
