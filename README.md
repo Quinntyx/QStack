@@ -1,87 +1,105 @@
 # QStack
 
-QStack is the set of skills I give my coding agents. I run them in
-[T3 Code](https://github.com/pingdotgg/t3code), with Claude Code and Pi as the agents. I started it
-after reading Poteto's [PStack](https://github.com/cursor/plugins/tree/main/pstack) and Theo's
-[TStack](https://github.com/t3dotgg/tstack), and the `reflect` skill is adapted from PStack.
+My agent skills, for Claude Code and Pi running inside [T3 Code](https://github.com/pingdotgg/t3code).
 
-A skill is a folder with a `SKILL.md` file: a description that tells the agent when to load it,
-then the instructions it follows.
+I started from [pstack](https://github.com/cursor/plugins/tree/main/pstack) by Poteto and
+[tstack](https://github.com/t3dotgg/tstack) by Theo. tstack assumes you pay for a subscription at
+every frontier lab and can put all of them on every review and let them hill-climb. I can't, so
+QStack gives each model the job it is good at and hands the rest to open-weight models. GPT Sol
+reviews code, with Claude Opus beside it. GLM, DeepSeek and MiMo do the bounded work, and through
+OpenCode Go they cost little enough to use all the time.
 
-These skills are written for my setup. Some name my Forgejo server, my GitHub account and the
-models I pay for, and `council` and `subagents` launch agents through T3 Code's MCP tools
-(`delegate_task`, `orchestrator_capabilities`). Read a skill before you install it and expect to
-edit it.
+## What's in it
 
-## Layout
+Most skills are harness-neutral and live in `shared/`. Each harness also gets three small
+`harness-*` skills that say how that harness does the thing a shared skill asks for.
 
-- `shared/` has the skills both agents get.
-- `claude/` and `pi/` each have `harness-config`, `harness-delegation` and
-  `harness-verification`, written for that agent. Shared skills name these and never a
-  Claude Code or Pi tool directly. For example, `subagents` decides how to split the work, and
-  `harness-delegation` says how Claude Code or Pi launches each child.
-- `bin/qstack` checks the repository and installs skills as symlinks.
-
-## Skills I trigger by phrase
-
-- **full stop**: the agent finishes the task, tests it, reviews it, opens a pull request and
-  watches it until it is ready to merge, then hands it back to me without merging.
-- **full send**: everything `full stop` does, then the agent merges the pull request once its
-  checks and review pass.
-- **council**: the agent sends a change or a design question to a panel of other models. For a
-  change, it fixes what they find and sends it back until every voting model scores it at least
-  9/10, or the number I give ("council 9.5"). After three rounds without agreement it asks a
-  design panel for a different approach. The panels are plain lists near the bottom of
-  `shared/council/SKILL.md`.
-- **reflect**: the agent goes back through the conversation for lessons worth keeping and
-  proposes each one as an edit to an existing skill.
-
-## Other skills
-
-| Skill | What it does |
+| Skill | Use it for |
 | --- | --- |
-| `agent-repo-guidance` | Writes or repairs a repository's `AGENTS.md` or `CLAUDE.md` |
-| `create-skill` | Writes, revises and checks skills in the Contract/Entrypoint shape every skill here uses |
-| `deslop` | Rules for prose a person will read. This README follows it |
-| `edit-config` | Changes persistent configuration through the tool that owns it, such as chezmoi or a package manager, instead of editing the live file |
-| `estimate-time` | Estimates how long agent work will take from measured per-model times |
-| `git` | Cloning, branches, worktrees, commits and pushes, with child skills for `init-project`, `github-mirror`, `issues` and `pr` |
-| `project-plan` | Project plans, architecture documents and `PLAN.md` |
-| `runtime-verification` | Decides what evidence a bug fix or change needs, from a failing test to a real user flow |
-| `subagents` | Splits work across child agents and checks what they return. Its `model-selection` child picks the models |
+| `council` | Say "council" to get a change reviewed, or a design question answered, by a panel of models. "council 9.5" sets the score every voting seat must reach. |
+| `full-stop` | Say "full stop" to have the agent finish the task through a ready-to-merge PR and hand off. |
+| `full-send` | Say "full send" for everything `full-stop` does, plus merging when the PR's gate passes. |
+| `reflect` | Say "reflect" to turn lessons from the conversation into proposed edits to existing skills. Adapted from pstack. |
+| `subagents` | Delegating work, parallel children, and how to accept or integrate what they return. |
+| `subagents/model-selection` | Which model, effort and provider each child gets. |
+| `runtime-verification` | How much evidence a fix or change needs before it counts as verified. |
+| `estimate-time` | Sizing agent work from measured per-model times. Agent work takes minutes and hours, not days. |
+| `project-plan` | Project plans, architecture docs, `PLAN.md`. |
+| `agent-repo-guidance` | Writing or repairing a repository's `AGENTS.md` or `CLAUDE.md`. |
+| `create-skill` | Writing, revising and testing skills, including routed skill trees. |
+| `edit-config` | Changing dotfiles and app or harness settings at their real source. |
+| `deslop` | Prose a person will read: READMEs, PR descriptions, commit messages, reports. |
+| `git` | Cloning, branches, commits and pushes. Routes to `pr`, `issues`, `init-project` and `github-mirror`. |
+| `harness-config`, `harness-delegation`, `harness-verification` | One copy each in `claude/` and `pi/`. |
+
+Some of this is shaped around my own setup. The `git` skills assume Forgejo hosting with GitHub
+mirrors, and `council`, `subagents` and `model-selection` call T3 Code's MCP tools
+(`delegate_task`, `orchestrator_capabilities`). Outside T3 Code those skills have no way to launch
+other models.
+
+## How the models are used
+
+`shared/subagents/model-selection/SKILL.md` splits work into two tiers:
+
+- **Focused**: bounded implementation with a clear acceptance test, diagnosis, evidence gathering.
+  GLM 5.3 Flash, DeepSeek V4.1 Flash, MiMo V2.6 Flash.
+- **Frontier**: hard engineering, architecture, subtle review, final acceptance. GPT 6.1 Sol.
+
+A focused builder that fails two repair reviews on the same requirement is promoted to the frontier
+tier. Claude models run on the Claude Code provider and every other model runs on Pi.
+
+The council keeps two panels, written as plain sentences in `shared/council/SKILL.md` so they are
+easy to edit:
+
+- **Review**: GPT Sol (6.2 and 6.1 as one merged seat), Claude Opus 5.5, Muse Ember, and GLM 5.3
+  as a jester that does not vote and is never waited for.
+- **Design**: Claude Fable 5.2 and GPT 6.2 Astra. They cost too much to sit on every review, so
+  they only see design questions.
+
+The model names are in those two files only. Change them there and every other skill follows.
 
 ## Install
 
-You need Python 3, plus `trash-put` from trash-cli if you want to uninstall.
+`bin/qstack` links each skill into a harness's skills directory as a symlink, so editing the repo
+updates the installed skill. A harness gets everything in `shared/` plus its own folder.
 
 ```sh
-git clone https://github.com/Quinntyx/QStack.git
+git clone https://github.com/Quinntyx/QStack
 cd QStack
-bin/qstack install claude              # links into ~/.claude/skills
-bin/qstack install pi --profile NAME   # links into ~/.config/pi/profiles/NAME/skills
+
+bin/qstack install claude                 # into ~/.claude/skills
+bin/qstack install pi --profile NAME      # into ~/.config/pi/profiles/NAME/skills
+bin/qstack install pi --dir ~/somewhere   # or any directory
+
+bin/qstack install claude --only council,deslop --dry-run
+bin/qstack status claude
+bin/qstack uninstall claude
 ```
 
-Each skill is one symlink into the clone, so a `git pull` updates the installed skills. Other
-options:
+`install` never replaces anything that isn't already a QStack link. It reports a conflict and
+leaves the file alone. `uninstall` moves links to the trash with `trash-put`, so it needs
+trash-cli.
 
-- `--dir DIR` installs somewhere else.
-- `--only council,deslop` installs just those skills.
-- `--dry-run` prints what would change.
+## Layout
 
-`install` never replaces a folder that is not already a QStack link. It reports a conflict and
-leaves the folder alone. `bin/qstack status claude` shows the state of each link, and
-`bin/qstack uninstall claude` moves the links to the trash.
+```
+shared/   skills for every harness; may name harness-* skills but no native tool names
+claude/   harness-* skills for Claude Code
+pi/       harness-* skills for Pi inside T3 Code
+bin/      qstack: install, status, uninstall, check
+tests/    unit tests for bin/qstack
+```
 
-## Checks
+## Contributing
 
-Run both before committing:
+Read `AGENTS.md` first. It has the rules for what goes in `shared/` versus a harness folder. Run
+both checks before committing:
 
 ```sh
 bin/qstack check
 python3 -m unittest discover -s tests
 ```
 
-`bin/qstack check` validates each skill's frontmatter, that `claude/` and `pi/` offer the same
-skill names, and that every relative link between skills resolves once installed. It cannot tell
-whether an agent picks a skill at the right moment or follows it. For that I try the skill in a
-fresh session.
+`bin/qstack check` validates frontmatter, that `claude/` and `pi/` offer the same skill names, and
+that every relative link resolves in each harness's installed view. It can't tell you whether a
+model picks up and follows a skill. For that, try it in a fresh session.

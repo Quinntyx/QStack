@@ -25,8 +25,9 @@ Then write only for that person:
 - Open with what they came for and stop when they have it.
 - Sort what you know before you write. Whoever asked for the piece told you things so that you
   would understand the job: why they made it, how their machine is arranged, how they maintain
-  it. That is background for you. A fact moves into the piece only if this reader would do
-  something differently for knowing it.
+  it. That is background for you, even when it was the first thing they said. A fact moves
+  into the piece only if this reader would do something differently for knowing it, and where
+  the author keeps the thing among their own files is not such a fact.
 - Test each sentence the same way: would this reader miss it? "I moved this out of our
   monorepo last spring" is true and mattered to the author, and a stranger can do nothing
   with it.
