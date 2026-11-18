@@ -1,0 +1,18 @@
+name: Test
+
+on:
+  push:
+  pull_request:
+    branches: [main]
+
+jobs:
+  check:
+    runs-on: docker
+    container:
+      image: node:22-bookworm
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - run: python3 bin/qstack check
+      - run: python3 -m unittest discover -s tests
