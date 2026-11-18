@@ -90,7 +90,13 @@ metadata:
 4. For review responses, answer the actual concern directly. State the finding, resulting change
    with commit references, verification, and open limitation in a short self-contained response.
    Attribute quoted observations correctly and distinguish evidence from speculation.
-5. An authorized hosted operation proceeds to Stage 4: Publish or revise. Draft-only or unresolved
+5. For a PR an agent built, end the description with one line naming the models that did the
+   work, and the review if there was one: "Built with Opus 5.5 orchestrating DeepSeek V4.1
+   Flash, reviewed by a council of 6.1 Sol, 6.2 Sol, Opus 5.5 and GLM 5.3 with a final score of
+   9.83." Name the models that actually ran; the score is the mean of the voting seats' final
+   scores. This line is the only credit a model gets: no model appears as a co-author or
+   contributor, in the description or in a commit trailer.
+6. An authorized hosted operation proceeds to Stage 4: Publish or revise. Draft-only or unresolved
    publication scope proceeds to Stage 5: Verify and report with the unpublished artifact.
 
 ## Stage 4: Publish or revise

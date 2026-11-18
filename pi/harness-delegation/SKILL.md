@@ -33,12 +33,11 @@ metadata:
 # Review route
 
 - One independent review is one T3 `delegate_task` with `role:'review'`, briefed per the subagents
-  review reference. A requested council is the `council` skill instead. Choose one route.
+  review reference. Choose one route.
 - Posting review comments or applying fixes is an effect separate from read-only findings.
 
 # Standing defaults
 
 - Skill rehearsals (create-skill Stage 4) run on provider `pi_pi_t3main`, model
   `opencode-go/glm-5.3-flash`, with normal defaults for every other setting, when that identity is
-  listed by `orchestrator_capabilities`. If it is not listed, select through model-selection.
-- When this thread inherits a capable focused-tier default, simple delegation inherits it.
+  listed by `orchestrator_capabilities`. If it is not listed, say so.

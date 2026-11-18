@@ -47,9 +47,8 @@ metadata:
 2. For model-selection-only work read `model-selection/SKILL.md` and return the plan. For execution,
    choose the launch route using Runtime rules. One assignment needs only lightweight delegation;
    dependent work remains blocked until its inputs are accepted.
-3. A review uses one path: the review route `harness-delegation` names, or the `council` skill when
-   the user asks for a council. Comment publication and applying fixes remain effects distinct from
-   read-only findings.
+3. A single delegated review uses the review route `harness-delegation` names. Comment publication
+   and applying fixes remain effects distinct from read-only findings.
 4. Continue to Stage 2 with a finite roster and clear acceptance criteria.
 
 ## Stage 2: Prepare

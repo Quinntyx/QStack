@@ -8,8 +8,8 @@
    preparation.
 3. Give each child the requested outcome, relevant context and skill-entrypoint paths, actual
    workspace authority, allowed effects, acceptance criteria and a concise artifact/report
-   destination. Resolve each new assignment's eligible model and role through
-   `../model-selection/SKILL.md`, then carry that resolved choice in its `target` and brief.
+   destination. Resolve each new assignment's model through
+   `../model-selection/SKILL.md`, then carry that choice in its `target`.
 4. Give concurrent writers `isolation: 'worktree'` children (T3 prepares the checkout and branch;
    the child can publish its own PR) and real shared-resource leases. A read-only child needs only
    the environment and inputs necessary to answer it.

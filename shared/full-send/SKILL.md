@@ -1,7 +1,7 @@
 ---
 name: full-send
-description: "Use when the user says 'full send' — finish the task end-to-end without check-ins:
-  do everything 'full stop' does, then merge the PR when its gate passes."
+description: "Use when the user says 'full send' — do everything 'full stop' does, then merge
+  the PR once it is ready. Takes the same council phrases ('full send council 9.5')."
 metadata:
   type: procedure
 ---
@@ -24,18 +24,21 @@ metadata:
 ## Stage 1: Grant
 
 Read `../full-stop/SKILL.md`. "Full send" grants everything in its Stage 1 and adds one thing:
-merging this PR once the Readiness gate passes. If the trigger was not an explicit "full send",
+merging this PR once the Readiness gate passes. The words after "full send" are read the way
+that stage reads the words after "full stop". If the trigger was not an explicit "full send",
 ask instead of assuming it.
 
 ## Stage 2: Prepare
 
-Run full-stop's stages 2–6 as written, using its Readiness gate and Asking the user rules. Come
-back here with a **ready** verdict. Waiting-for-approval or blocked is not permission to merge.
+Run full-stop's stages 2–9 as written, using its Readiness gate and Asking the user rules. Come
+back here with a **ready** verdict. Waiting for approval, blocked, or a council that did not pass
+is not permission to merge.
 
 ## Stage 3: Merge
 
 Recheck the live head and the gate. Call `unwatch_pull_request`, then merge with the method the
-repository uses; look at its allowed methods and recent merged PRs. With a merge queue or
+repository uses; look at its allowed methods and recent merged PRs. When that is unclear or
+mixed, squash and merge. With a merge queue or
 auto-merge, stay until the host reports the PR merged. Merge through branch protection as
 configured, never around it.
 

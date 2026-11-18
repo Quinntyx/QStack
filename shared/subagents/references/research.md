@@ -23,6 +23,5 @@
 - Delegate tasks are one-shot: resolve a source discrepancy with a follow-up child whose brief
   carries the prior child's summary, exact source references and artifact paths so that evidence
   survives summarization.
-- Use `../model-selection/SKILL.md` for evidence-worker and frontier-synthesis selection when
-  role routing is needed. Simple delegation can inherit a capable selected-profile model.
+- Use `../model-selection/SKILL.md` when a child needs a model other than this thread's.
   Verify consequential claims against the underlying evidence.

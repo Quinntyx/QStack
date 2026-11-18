@@ -63,7 +63,7 @@
 
 ## Model resolution and task settings
 
-- `../model-selection/SKILL.md` owns child model defaults, tiers and effort. Resolve its choice
+- `../model-selection/SKILL.md` owns child model defaults, effort and routing. Resolve its choice
   through `orchestrator_capabilities` output and set it on the child with `target.model` /
   `target.options`. Registration does not imply quota; retain the child's actual startup failure
   when a selected model cannot execute.

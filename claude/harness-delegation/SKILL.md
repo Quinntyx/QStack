@@ -40,7 +40,7 @@ metadata:
 
 - One independent review uses native `/code-review` through `Skill` when it is exposed and fits the
   task's child and model limits; otherwise one T3 delegated review via the subagents review
-  reference. A requested council is the `council` skill instead. Choose one route.
+  reference. Choose one route.
 - `--comment` and `--fix` are effects separate from read-only findings; use them only when assigned.
 
 # Model boundary
