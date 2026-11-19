@@ -30,7 +30,8 @@ metadata:
    expected environment, and acceptance criteria. Resolve only ambiguity that changes these facts.
 2. Resolve the executing harness and requested deployment scope from runtime evidence. Load the
    `harness-config` skill for this harness's skill roots, loader rules and invocation controls.
-   Skills in the QStack repository follow its `AGENTS.md` layout (`shared/`, `claude/`, `pi/`).
+   Skills in the QStack repository follow its `AGENTS.md` layout
+   (`shared/`, `claude/`, `pi/`, `antigravity/`).
    Managed configuration is edited at its manager's source (an `edit-config` skill, when you have
    one, covers that), and vendored skills in their owning package repository.
 3. Read the target harness's installed skill-loading docs and actual tool schemas. Inspect adjacent

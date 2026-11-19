@@ -1,15 +1,15 @@
 # QStack
 
-Personal agent skills, installed into Claude Code and Pi as symlinks. Read `README.md` for the
-layout. Author skills with the `create-skill` skill.
+Personal agent skills, installed into Claude Code, Pi and Antigravity as symlinks.
+Read `README.md` for the layout. Author skills with the `create-skill` skill.
 
 ## Rules
 
 - Edit skills here, never through an installed link's parent directory, chezmoi, or a plugin cache.
 - `shared/` stays harness-neutral: no native tool names, slash commands or profile paths. When a
   shared skill needs harness behavior, name a `harness-*` skill and put one skill of that name in
-  both `claude/` and `pi/`. Prefer extending an existing `harness-*` skill to adding a new name;
-  every advertised skill costs context in every session.
+  `claude/`, `pi/` and `antigravity/`. Prefer extending an existing `harness-*` skill to adding a
+  new name; every advertised skill costs context in every session.
 - Shared skills reference each other with sibling-relative paths (`../git/SKILL.md`). They
   reference harness skills by name only, because the relative path differs per harness.
 - `pi/` targets Pi running inside T3 Code. T3 MCP tools (`delegate_task` and the like) are shared
@@ -24,9 +24,10 @@ layout. Author skills with the `create-skill` skill.
   must not stretch to cover issues.
 - Line count is not the measure; a skill is as long as its content needs. Prefer a sentence the
   user can edit to a config file or a helper script; skills carry no `bin/` directories.
-- `claude/APPEND_SYSTEM.md` and `pi/APPEND_SYSTEM.md` are added to every session's system prompt
-  by `bin/qstack install`. Put a line there only when a skill cannot work without a standing
-  reminder; every line costs context in every session.
+- Each harness's `APPEND_SYSTEM.md` supplies the reminder installed by `bin/qstack install`.
+  Read the README's system prompt section for loading limits, including T3's Antigravity profiles.
+  Put a line there only when a skill cannot work without a standing reminder; every line costs
+  context in every session that loads it.
 - Commit messages are conventional commits. No model or agent tool is credited as a co-author.
 - Prose in this repository follows the `deslop` skill.
 
@@ -39,6 +40,6 @@ bin/qstack check
 python3 -m unittest discover -s tests
 ```
 
-`bin/qstack check` validates frontmatter, that `claude/` and `pi/` offer the same names, and that
+`bin/qstack check` validates frontmatter, that all harness folders offer the same names, and that
 every relative link resolves in each harness's installed view. It does not prove a model selects
 or follows a skill; that takes a rehearsal in a fresh session.

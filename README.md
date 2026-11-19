@@ -1,6 +1,7 @@
 # QStack
 
-My agent skills, for Claude Code and Pi running inside [T3 Code](https://github.com/pingdotgg/t3code).
+My agent skills, for Claude Code, Pi and Antigravity, including sessions inside
+[T3 Code](https://github.com/pingdotgg/t3code).
 
 I built this after reading Poteto's [pstack](https://github.com/cursor/plugins/tree/main/pstack)
 and Theo's [tstack](https://github.com/t3dotgg/tstack). I like tstack's philosophy a lot, but its
@@ -37,7 +38,7 @@ Panels section of [`shared/council/SKILL.md`](shared/council/SKILL.md).
 
 ## Skills
 
-Everything in `shared/` works in both harnesses.
+Everything in `shared/` works in all three harnesses.
 
 | Skill | Use |
 | --- | --- |
@@ -55,13 +56,15 @@ Everything in `shared/` works in both harnesses.
 | `stack-philosophy` | Not a procedure. A description of me and how I work, in the same voice as this README, which an agent reads when a skill does not cover the situation so it can guess what I would want. |
 | `reflect` | Turn lessons from the current conversation into proposed skill edits. Adapted from pstack. |
 
-`claude/` and `pi/` each hold three `harness-*` skills (`harness-config`, `harness-delegation`,
-`harness-verification`) that explain how the current harness does what the shared skills ask for:
+`claude/`, `pi/` and `antigravity/` each hold three `harness-*` skills (`harness-config`,
+`harness-delegation`, `harness-verification`) that explain how the current harness does what the
+shared skills ask for:
 where its settings live, how it launches child agents, how it checks a running change. Shared
 skills name these by name and never mention a harness-specific tool.
 
 Delegation goes through T3 Code's `delegate_task` MCP tool, so several skills expect T3 Code. In
-T3, Claude models run on the Claude Code provider and everything else runs on Pi.
+T3, use the provider configured for the model. Standalone Antigravity can load the skills, but
+T3-managed delegation requires a T3 session.
 
 Some of `git` describes my own setup. I keep repositories on a Forgejo server that mirrors them
 to GitHub, so `github-mirror` is only useful if you do the same, and `init-project` bootstraps a
@@ -81,24 +84,44 @@ cd QStack
 bin/qstack install claude                    # ~/.claude, or $CLAUDE_CONFIG_DIR if set
 bin/qstack install claude --home ~/.claude-work   # another Claude Code config directory
 bin/qstack install pi --profile NAME         # ~/.config/pi/profiles/NAME
-bin/qstack install pi --dir PATH             # any skills directory, for either harness
+bin/qstack install antigravity               # ~/.gemini/config/skills; system or T3-managed
+bin/qstack install antigravity --home ~/.gemini-work  # another Gemini directory
+bin/qstack install antigravity --dir .agents/skills   # project skills only
 ```
 
 A harness gets every skill in `shared/` plus its own folder. `--only full-stop,council` installs a
 subset and `--dry-run` shows what would change. `install` never overwrites a file or directory
 that is not already a QStack link; it reports a conflict and leaves it alone.
 
-`status` and `uninstall` take the same target options for both harnesses:
+`status` and `uninstall` take the same target options for all three harnesses:
 
 ```sh
 bin/qstack status claude --home ~/.claude-work
 bin/qstack status pi --profile NAME
+bin/qstack status antigravity
 bin/qstack uninstall pi --profile NAME
+bin/qstack uninstall antigravity
 ```
 
 `status` prints one line per skill: `linked`, `missing`, `stale` (a QStack link to the wrong
 place), `conflict` or `foreign-link` (something of yours is in the way). `uninstall` removes the
 links with `trash-put`, so it needs [trash-cli](https://github.com/andreafrancia/trash-cli).
+
+### Antigravity installations
+
+`bin/qstack install antigravity` uses Antigravity's global skills directory,
+`~/.gemini/config/skills/`. It works with a system installation and with the ACP runtime installed
+by T3 Code's **Install Antigravity** button. The managed executable need not be on `PATH`: QStack
+links skills into the user directory, not the runtime's download directory.
+
+T3 gives each Antigravity provider session a private `GEMINI_HOME` and links global skills from
+the real `~/.gemini` into it. QStack therefore uses `~/.gemini` even if `GEMINI_HOME` is set. Start
+a new T3 provider session after installing so T3 can prepare those links. `--home` is an explicit
+override for a standalone custom home; T3's normal profile setup still uses the real `~/.gemini`.
+
+QStack does not install Antigravity, select T3's binary, sign in, or edit T3's private profiles.
+See [Google's discovery paths](https://antigravity.google/docs/customization-discovery/) and
+[T3's provider guide](https://github.com/pingdotgg/t3code/blob/main/docs/user/providers-antigravity.md).
 
 ### The system prompt add
 
@@ -112,10 +135,13 @@ harness folder has an `APPEND_SYSTEM.md` with that reminder, and `install` adds 
 - **Pi:** as a block between `<!-- qstack:begin -->` and `<!-- qstack:end -->` in the profile's
   `APPEND_SYSTEM.md`. The rest of the file is left as it is, and a later `install` updates the
   block in place.
+- **Antigravity:** as the same marked block in `~/.gemini/GEMINI.md`, or `GEMINI.md` under
+  `--home`. T3 forwards global skills into its private profile, but does not forward this file;
+  its managed sessions get the skills, not this reminder.
 
 Pass `--no-system` to skip it. `--dir` skips it too, since a bare skills directory has no place
-for one. If a dotfile manager owns your Pi profile, the block will show up there as a change to
-commit.
+for one. `--only` also skips the prompt. If a dotfile manager owns the target prompt file, the
+block will show up there as a change to commit.
 
 ## Changing the skills
 
@@ -126,6 +152,6 @@ bin/qstack check
 python3 -m unittest discover -s tests
 ```
 
-`bin/qstack check` validates frontmatter, confirms `claude/` and `pi/` offer the same skill names,
+`bin/qstack check` validates frontmatter, confirms all harness folders offer the same skill names,
 and resolves every relative link as each harness will see it once installed. It cannot tell you
 whether a model picks up and follows a skill; for that, try it in a fresh session.

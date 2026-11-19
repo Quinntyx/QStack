@@ -5,19 +5,23 @@ Usage:
   qstack check
   qstack install   claude [--home DIR | --dir DIR] [--only a,b] [--no-system] [--dry-run]
   qstack install   pi     [--profile NAME | --dir DIR] [--only a,b] [--no-system] [--dry-run]
-  qstack status    claude|pi [same target options]
-  qstack uninstall claude|pi [same target options] [--only a,b] [--dry-run]
+  qstack install   antigravity [--home DIR | --dir DIR] [--only a,b] [--no-system] [--dry-run]
+  qstack status    claude|pi|antigravity [same target options]
+  qstack uninstall claude|pi|antigravity [same target options] [--only a,b] [--dry-run]
 
 A harness gets every skill in shared/ plus every skill in its own folder, each as one symlink.
 
 Where it installs:
   claude  HOME/skills, where HOME is --home, else $CLAUDE_CONFIG_DIR, else ~/.claude.
   pi      ~/.config/pi/profiles/NAME/skills for --profile NAME.
-  --dir   any skills directory, for either harness. Skills only.
+  antigravity HOME/config/skills, where HOME is --home, else ~/.gemini.
+              System installs and T3 Code's managed runtime use these same global skills.
+  --dir   any skills directory, for any harness. Skills only.
 
 install also adds the harness's APPEND_SYSTEM.md to the system prompt, unless --no-system or
 --dir is given: for claude as the link HOME/rules/qstack.md, for pi as a marked block inside
-the profile's APPEND_SYSTEM.md. Text outside the markers is never touched.
+the profile's APPEND_SYSTEM.md, for antigravity as a marked block inside HOME/GEMINI.md.
+Text outside the markers is never touched.
 
 install never replaces something that is not already a link into this repository.
 """
@@ -29,7 +33,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-HARNESSES = ("claude", "pi")
+HARNESSES = ("claude", "pi", "antigravity")
 NAME_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 LINK_RE = re.compile(r"`((?:\.\./)*[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)+\.(?:md|yaml|py))`")
 HARNESS_REF_RE = re.compile(r"`(harness-[a-z-]+)`")
@@ -86,9 +90,10 @@ def check():
                 if "type: procedure" not in md.read_text() and "type: guideline" not in md.read_text():
                     errors.append(f"{rel}: metadata.type must be procedure or guideline")
     names = [set(per_harness[h]) for h in HARNESSES]
-    if names[0] != names[1]:
-        errors.append(f"claude/ and pi/ must offer the same skill names; differing: "
-                      f"{sorted(names[0] ^ names[1])}")
+    if any(group != names[0] for group in names[1:]):
+        differing = set.union(*names) - set.intersection(*names)
+        errors.append(f"{', '.join(h + '/' for h in HARNESSES)} must offer the same skill names; "
+                      f"differing: {sorted(differing)}")
     for h in HARNESSES:
         for clash in sorted(set(shared) & set(per_harness[h])):
             errors.append(f"`{clash}` exists in both shared/ and {h}/")
@@ -134,6 +139,9 @@ def harness_home(args):
     if args.harness == "claude":
         home = args.home or os.environ.get("CLAUDE_CONFIG_DIR") or "~/.claude"
         return Path(home).expanduser()
+    if args.harness == "antigravity":
+        # T3's private GEMINI_HOME links skills from the real ~/.gemini, not its runtime download.
+        return Path(args.home or "~/.gemini").expanduser()
     if args.profile:
         return Path.home() / ".config" / "pi" / "profiles" / args.profile
     sys.exit("qstack: pi needs --profile NAME or --dir DIR")
@@ -142,7 +150,8 @@ def harness_home(args):
 def target_dir(args):
     if args.dir:
         return Path(args.dir).expanduser()
-    return harness_home(args) / "skills"
+    home = harness_home(args)
+    return home / "config" / "skills" if args.harness == "antigravity" else home / "skills"
 
 
 def system_source(args):
@@ -153,7 +162,9 @@ def system_target(args):
     home = harness_home(args)
     if home is None:
         return None
-    return home / "rules" / "qstack.md" if args.harness == "claude" else home / "APPEND_SYSTEM.md"
+    if args.harness == "claude":
+        return home / "rules" / "qstack.md"
+    return home / ("GEMINI.md" if args.harness == "antigravity" else "APPEND_SYSTEM.md")
 
 
 def block(args):
@@ -301,7 +312,8 @@ def main():
         p.add_argument("harness", choices=HARNESSES)
         p.add_argument("--dir", help="a skills directory; skills only")
         p.add_argument("--home", help="claude: its config directory (default "
-                                      "$CLAUDE_CONFIG_DIR or ~/.claude)")
+                                      "$CLAUDE_CONFIG_DIR or ~/.claude); antigravity: its Gemini "
+                                      "directory (default ~/.gemini)")
         p.add_argument("--profile", help="pi: the profile name")
         p.add_argument("--only", help="comma-separated skill names")
         p.add_argument("--dry-run", action="store_true")
