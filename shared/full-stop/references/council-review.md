@@ -15,7 +15,9 @@ runs each round; this file is the loop around it.
 
 ## Each round
 
-1. Run one review round with the `council` skill, passing the rubric and any comparison material.
+1. Run one review round with the `council` skill, passing the rubric, any comparison material and
+   the target's number of decimal places (one for 9 or 9.5, two for 9.75). The target itself
+   stays out of the brief.
 2. **Passed** when every voting seat scores at or above the target, no confirmed `blocker` or `should`
    is open, and, with a comparison, every voting seat scores ours above each thing compared.
    Shadow and jester seats do not count. Go back to `full-stop` Stage 8.
