@@ -10,6 +10,12 @@ every model, QStack gives each model the job it is good at, and it hands the bul
 open-weight models through [OpenCode Go](https://opencode.ai), which costs little enough that I
 can use them freely.
 
+I use agents to run a lot of work in parallel with as little hand-holding as I can manage: I
+hand a task off, leave, and come back when it is finished. The skills are written for that, and
+they trust the model to do the right thing. The longer version of how I think about this is
+[`shared/stack-philosophy/SKILL.md`](shared/stack-philosophy/SKILL.md), which the agents read
+too.
+
 ## Models
 
 The skills assume **Claude Opus 5.5 is the model you talk to**. It does the research, design,
@@ -46,7 +52,7 @@ Everything in `shared/` works in both harnesses.
 | `create-skill` | Write, revise and test a skill. |
 | `deslop` | Write prose a person will read without it sounding machine-made. |
 | `estimate-time` | Estimate how long agent work will take, from measured per-model times. |
-| `stack-philosophy` | Not a procedure. The beliefs the other skills are built on, read when a skill does not cover the situation, so the agent can work out what I would want. |
+| `stack-philosophy` | Not a procedure. A description of me and how I work, in the same voice as this README, which an agent reads when a skill does not cover the situation so it can guess what I would want. |
 | `reflect` | Turn lessons from the current conversation into proposed skill edits. Adapted from pstack. |
 
 `claude/` and `pi/` each hold three `harness-*` skills (`harness-config`, `harness-delegation`,
