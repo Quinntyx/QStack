@@ -120,8 +120,9 @@ Edit these in plain words. Each line is one seat.
 - **Claude Opus 5.5** at high.
 - **GLM 5.3**, a shadow seat, at high, through OpenCode Go. It is not as sharp as the others.
   Write it up in `glm_review`.
-- **Tidepool Alpha** (`cliproxyapi/tidepool-alpha`), a shadow seat. A new stealth model, so
-  nothing is known yet about how good it is. Write it up in `tidepool_review`.
+- **Tidepool Alpha** (`cliproxyapi/tidepool-alpha`), a shadow seat, at max. A new stealth model,
+  probably open-weight, so nothing is known yet about how good it is. Write it up in
+  `tidepool_review`.
 
 Three kinds of seat:
 
