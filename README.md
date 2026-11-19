@@ -81,6 +81,9 @@ effect right away. It needs Python 3.
 git clone https://github.com/Quinntyx/QStack.git
 cd QStack
 
+bin/qstack install                           # all three harnesses
+bin/qstack install claude pi antigravity      # the same, explicitly
+bin/qstack install claude antigravity         # just these two
 bin/qstack install claude                    # ~/.claude, or $CLAUDE_CONFIG_DIR if set
 bin/qstack install claude --home ~/.claude-work   # another Claude Code config directory
 bin/qstack install pi --profile NAME         # ~/.config/pi/profiles/NAME
@@ -90,18 +93,29 @@ bin/qstack install antigravity --dir .agents/skills   # project skills only
 ```
 
 A harness gets every skill in `shared/` plus its own folder. `--only full-stop,council` installs a
-subset and `--dry-run` shows what would change. `install` never overwrites a file or directory
-that is not already a QStack link; it reports a conflict and leaves it alone.
+subset and `--dry-run` shows what would change. These options apply to every selected target.
+`install` never overwrites a file or directory that is not already a QStack link; it reports a
+conflict, continues with the other targets, and exits unsuccessfully if any target had conflicts.
+
+Pi needs no explicit target: it uses `--profile NAME`, then `--home DIR`, then
+`$PI_CODING_AGENT_DIR` if set. Otherwise it installs into every existing profile under
+`~/.config/pi/profiles/`, or `~/.pi/agent` if there are no profiles. `--profile` selects only Pi's
+target in a multi-harness command. `--home` and `--dir` require exactly one harness so different
+harnesses cannot overwrite each other's bindings in a shared destination.
 
 `status` and `uninstall` take the same target options for all three harnesses:
 
 ```sh
+bin/qstack status claude pi antigravity
 bin/qstack status claude --home ~/.claude-work
 bin/qstack status pi --profile NAME
 bin/qstack status antigravity
 bin/qstack uninstall pi --profile NAME
 bin/qstack uninstall antigravity
 ```
+
+`status` and `uninstall` accept multiple harness names but require at least one explicit name.
+Each command prints the harness and skills directory before its results.
 
 `status` prints one line per skill: `linked`, `missing`, `stale` (a QStack link to the wrong
 place), `conflict` or `foreign-link` (something of yours is in the way). `uninstall` removes the

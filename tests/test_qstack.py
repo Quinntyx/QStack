@@ -142,6 +142,158 @@ class SystemPrompt(unittest.TestCase):
             self.assertFalse((home / "rules").exists())
 
 
+class MultipleHarnesses(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.home = Path(self.tmp.name)
+        self.env = {k: v for k, v in os.environ.items()
+                    if k not in ("CLAUDE_CONFIG_DIR", "PI_CODING_AGENT_DIR")}
+        self.env.update(HOME=str(self.home), XDG_DATA_HOME=str(self.home / ".local/share"))
+        self.skills = {"claude": self.home / ".claude/skills",
+                       "pi": self.home / ".pi/agent/skills",
+                       "antigravity": self.home / ".gemini/config/skills"}
+
+    def command(self, *args):
+        return run([QSTACK, *args], env=self.env)
+
+    def assert_installed(self, harnesses):
+        for harness in harnesses:
+            self.assertEqual((self.skills[harness] / "council").resolve(), ROOT / "shared/council")
+            self.assertEqual((self.skills[harness] / "harness-config").resolve(),
+                             ROOT / harness / "harness-config")
+
+    def test_bare_install_installs_all_harnesses(self):
+        result = self.command("install")
+        self.assertEqual(result.returncode, 0, result.stderr + result.stdout)
+        self.assert_installed(self.skills)
+        self.assertEqual((self.home / ".claude/rules/qstack.md").resolve(),
+                         ROOT / "claude/APPEND_SYSTEM.md")
+        for prompt in (".pi/agent/APPEND_SYSTEM.md", ".gemini/GEMINI.md"):
+            self.assertIn("estimate-time", (self.home / prompt).read_text())
+
+    def test_explicit_multiple_harnesses_install_status_and_uninstall(self):
+        harnesses = ["claude", "pi", "antigravity"]
+        installed = self.command("install", *harnesses)
+        self.assertEqual(installed.returncode, 0, installed.stderr + installed.stdout)
+        self.assert_installed(harnesses)
+        status = self.command("status", *harnesses)
+        self.assertEqual(status.returncode, 0, status.stderr)
+        self.assertNotIn("missing", status.stdout)
+        for harness, skills in self.skills.items():
+            self.assertIn(f"{harness}: {skills}", status.stdout)
+        removed = self.command("uninstall", *harnesses)
+        self.assertEqual(removed.returncode, 0, removed.stderr)
+        for skills in self.skills.values():
+            self.assertFalse((skills / "council").is_symlink())
+
+    def test_subset_only_and_dry_run_apply_to_every_selected_harness(self):
+        args = ["install", "claude", "antigravity", "--only", "council", "--no-system"]
+        dry = self.command(*args, "--dry-run")
+        self.assertEqual(dry.returncode, 0, dry.stderr)
+        self.assertEqual(list(self.home.iterdir()), [])
+        installed = self.command(*args)
+        self.assertEqual(installed.returncode, 0, installed.stderr)
+        for harness in ("claude", "antigravity"):
+            self.assertEqual({p.name for p in self.skills[harness].iterdir()}, {"council"})
+        self.assertFalse((self.home / ".pi").exists())
+        self.assertFalse((self.home / ".gemini/GEMINI.md").exists())
+
+    def test_pi_uses_active_directory_before_discovering_profiles(self):
+        profile = self.home / ".config/pi/profiles/other"
+        profile.mkdir(parents=True)
+        self.env["PI_CODING_AGENT_DIR"] = "~/active pi"
+        result = self.command("install", "pi")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual((self.home / "active pi/skills/harness-config").resolve(),
+                         ROOT / "pi/harness-config")
+        self.assertFalse((profile / "skills").exists())
+        self.assertFalse((self.home / ".pi").exists())
+
+    def test_pi_home_override_ignores_the_active_directory(self):
+        self.env["PI_CODING_AGENT_DIR"] = str(self.home / "active")
+        result = self.command("install", "pi", "--home", "~/custom pi")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual((self.home / "custom pi/skills/harness-config").resolve(),
+                         ROOT / "pi/harness-config")
+        self.assertFalse((self.home / "active").exists())
+
+    def test_bare_install_no_system_skips_all_prompts(self):
+        result = self.command("install", "--no-system")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assert_installed(self.skills)
+        for prompt in (".claude/rules/qstack.md", ".pi/agent/APPEND_SYSTEM.md", ".gemini/GEMINI.md"):
+            self.assertFalse((self.home / prompt).exists())
+
+    def test_pi_discovers_existing_profiles_without_an_active_directory(self):
+        profiles = self.home / ".config/pi/profiles"
+        for name in ("work", "main"):
+            (profiles / name).mkdir(parents=True)
+        (profiles / "not-a-profile").write_text("Ignore files.")
+        result = self.command("install", "claude", "pi", "antigravity")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        for name in ("main", "work"):
+            self.assertEqual((profiles / name / "skills/harness-config").resolve(),
+                             ROOT / "pi/harness-config")
+            self.assertIn("estimate-time", (profiles / name / "APPEND_SYSTEM.md").read_text())
+        self.assertFalse((self.home / ".pi").exists())
+
+    def test_profile_option_in_a_batch_overrides_the_active_directory(self):
+        self.env["PI_CODING_AGENT_DIR"] = str(self.home / "active")
+        result = self.command("install", "claude", "pi", "antigravity", "--profile", "chosen")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual((self.home / ".config/pi/profiles/chosen/skills/council").resolve(),
+                         ROOT / "shared/council")
+        self.assertFalse((self.home / "active").exists())
+        self.assert_installed(["claude", "antigravity"])
+
+    def test_invalid_or_ambiguous_targets_fail_before_writing(self):
+        cases = [(["install", "claude", "pi", "--dir", str(self.home / "skills")],
+                  "--dir requires exactly one harness"),
+                 (["install", "--home", str(self.home / "custom")],
+                  "--home requires exactly one harness"),
+                 (["install", "antigravity", "--profile", "wrong"],
+                  "--profile requires pi"),
+                 (["install", "claude", "pi", "unknown"], "unknown harness"),
+                 (["install", "claude", "--home", str(self.home / "a"),
+                   "--dir", str(self.home / "b")], "--dir cannot be combined"),
+                 (["install", "pi", "--home", str(self.home / "a"), "--profile", "b"],
+                  "--home cannot be combined")]
+        for args, error in cases:
+            with self.subTest(args=args):
+                result = self.command(*args)
+                self.assertEqual(result.returncode, 2, result.stderr)
+                self.assertIn(error, result.stderr)
+                self.assertEqual(list(self.home.iterdir()), [])
+
+    def test_unknown_skill_is_validated_for_the_whole_batch(self):
+        result = self.command("install", "--only", "does-not-exist")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("unknown skills", result.stderr)
+        self.assertEqual(list(self.home.iterdir()), [])
+
+    def test_conflicts_fail_the_batch_but_other_targets_are_installed(self):
+        mine = self.skills["claude"] / "council"
+        mine.mkdir(parents=True)
+        (mine / "SKILL.md").write_text("Mine.")
+        result = self.command("install", "claude", "antigravity")
+        self.assertEqual(result.returncode, 1, result.stderr)
+        self.assertIn("CONFLICT  council", result.stdout)
+        self.assertEqual((mine / "SKILL.md").read_text(), "Mine.")
+        self.assert_installed(["antigravity"])
+
+    def test_repeated_harness_is_processed_once(self):
+        result = self.command("install", "claude", "claude", "--only", "council")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stdout.count("linked    council"), 1)
+
+    def test_status_and_uninstall_still_require_explicit_harnesses(self):
+        for cmd in ("status", "uninstall"):
+            with self.subTest(cmd=cmd):
+                self.assertEqual(self.command(cmd).returncode, 2)
+        self.assertEqual(list(self.home.iterdir()), [])
+
+
 class Antigravity(unittest.TestCase):
     def test_default_home_works_without_a_cli_on_path(self):
         with tempfile.TemporaryDirectory() as tmp:

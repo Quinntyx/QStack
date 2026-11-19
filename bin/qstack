@@ -3,17 +3,20 @@
 
 Usage:
   qstack check
-  qstack install   claude [--home DIR | --dir DIR] [--only a,b] [--no-system] [--dry-run]
-  qstack install   pi     [--profile NAME | --dir DIR] [--only a,b] [--no-system] [--dry-run]
-  qstack install   antigravity [--home DIR | --dir DIR] [--only a,b] [--no-system] [--dry-run]
-  qstack status    claude|pi|antigravity [same target options]
-  qstack uninstall claude|pi|antigravity [same target options] [--only a,b] [--dry-run]
+  qstack install   [HARNESS ...] [--only a,b] [--no-system] [--dry-run]
+  qstack status    HARNESS [HARNESS ...] [same target options]
+  qstack uninstall HARNESS [HARNESS ...] [same target options] [--only a,b] [--dry-run]
+
+HARNESS is claude, pi or antigravity. install with no names selects all three.
+--home DIR or --dir DIR selects a custom target for exactly one harness.
+--profile NAME selects Pi's profile, including in a multi-harness command.
 
 A harness gets every skill in shared/ plus every skill in its own folder, each as one symlink.
 
 Where it installs:
   claude  HOME/skills, where HOME is --home, else $CLAUDE_CONFIG_DIR, else ~/.claude.
-  pi      ~/.config/pi/profiles/NAME/skills for --profile NAME.
+  pi      --profile NAME, else --home, else $PI_CODING_AGENT_DIR, else existing profiles
+          under ~/.config/pi/profiles/, else ~/.pi/agent. Skills go in skills/.
   antigravity HOME/config/skills, where HOME is --home, else ~/.gemini.
               System installs and T3 Code's managed runtime use these same global skills.
   --dir   any skills directory, for any harness. Skills only.
@@ -142,9 +145,7 @@ def harness_home(args):
     if args.harness == "antigravity":
         # T3's private GEMINI_HOME links skills from the real ~/.gemini, not its runtime download.
         return Path(args.home or "~/.gemini").expanduser()
-    if args.profile:
-        return Path.home() / ".config" / "pi" / "profiles" / args.profile
-    sys.exit("qstack: pi needs --profile NAME or --dir DIR")
+    return Path(args.home or "~/.pi/agent").expanduser()
 
 
 def target_dir(args):
@@ -302,6 +303,41 @@ def uninstall(args):
     return 0
 
 
+def pi_homes(args):
+    profiles = Path.home() / ".config" / "pi" / "profiles"
+    if args.profile:
+        return [profiles / args.profile]
+    home = args.home or os.environ.get("PI_CODING_AGENT_DIR")
+    if home:
+        return [Path(home).expanduser()]
+    existing = sorted(p for p in profiles.iterdir() if p.is_dir()) if profiles.is_dir() else []
+    return existing or [Path.home() / ".pi" / "agent"]
+
+
+def targets(args, parser):
+    harnesses = list(dict.fromkeys(args.harness or HARNESSES))
+    unknown = [h for h in harnesses if h not in HARNESSES]
+    if unknown:
+        parser.error(f"unknown harness: {', '.join(unknown)}; choose from {', '.join(HARNESSES)}")
+    for option in ("dir", "home"):
+        if getattr(args, option) and len(harnesses) != 1:
+            parser.error(f"--{option} requires exactly one harness")
+    if args.dir and (args.home or args.profile):
+        parser.error("--dir cannot be combined with --home or --profile")
+    if args.home and args.profile:
+        parser.error("--home cannot be combined with --profile")
+    if args.profile and "pi" not in harnesses:
+        parser.error("--profile requires pi")
+    resolved = []
+    for harness in harnesses:
+        homes = pi_homes(args) if harness == "pi" and not args.dir else [args.home]
+        for home in homes:
+            target = argparse.Namespace(**{**vars(args), "harness": harness, "home": home})
+            selected(target)  # Validate the whole batch before the first target is changed.
+            resolved.append(target)
+    return resolved
+
+
 def main():
     parser = argparse.ArgumentParser(prog="qstack", description=__doc__,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -309,19 +345,27 @@ def main():
     sub.add_parser("check")
     for cmd in ("install", "status", "uninstall"):
         p = sub.add_parser(cmd)
-        p.add_argument("harness", choices=HARNESSES)
+        p.add_argument("harness", metavar="HARNESS", nargs="*" if cmd == "install" else "+",
+                       help="claude, pi or antigravity; install defaults to all three")
         p.add_argument("--dir", help="a skills directory; skills only")
         p.add_argument("--home", help="claude: its config directory (default "
-                                      "$CLAUDE_CONFIG_DIR or ~/.claude); antigravity: its Gemini "
-                                      "directory (default ~/.gemini)")
-        p.add_argument("--profile", help="pi: the profile name")
+                                      "$CLAUDE_CONFIG_DIR or ~/.claude); pi: its agent directory; "
+                                      "antigravity: its Gemini directory (default ~/.gemini). "
+                                      "Requires exactly one harness")
+        p.add_argument("--profile", help="pi: the profile name (otherwise auto-detected)")
         p.add_argument("--only", help="comma-separated skill names")
         p.add_argument("--dry-run", action="store_true")
         p.add_argument("--no-system", action="store_true",
                        help="leave the system prompt alone")
     args = parser.parse_args()
-    return {"check": lambda a: check(), "install": install, "status": status,
-            "uninstall": uninstall}[args.cmd](args)
+    if args.cmd == "check":
+        return check()
+    action = {"install": install, "status": status, "uninstall": uninstall}[args.cmd]
+    result = 0
+    for target in targets(args, parser):
+        print(f"{target.harness}: {target_dir(target)}")
+        result = max(result, action(target))
+    return result
 
 
 if __name__ == "__main__":
