@@ -27,7 +27,7 @@ The other models each have one job:
 | Job | Model |
 | --- | --- |
 | Builder: implements one chunk of work from an explicit brief | DeepSeek V4.1 Flash, max effort, via OpenCode Go |
-| Review panel | GPT 6.1 / 6.2 Sol, Claude Opus 5.5, and GLM 5.3 as a non-voting extra opinion |
+| Review panel | GPT 6.1 / 6.2 Sol, Claude Opus 5.5, plus GLM 5.3 and Tidepool Alpha as shadow seats: on trial, heard but not counted |
 | Design panel | Claude Fable 5.2, GPT 6.2 Astra |
 
 Fable and Astra sit only on design questions; they cost too much to run on every review. The

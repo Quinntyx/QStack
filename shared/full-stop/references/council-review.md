@@ -18,7 +18,7 @@ runs each round; this file is the loop around it.
 1. Run one review round with the `council` skill, passing the rubric and any comparison material.
 2. **Passed** when every voting seat scores at or above the target, no confirmed `blocker` or `should`
    is open, and, with a comparison, every voting seat scores ours above each thing compared.
-   Seats the council skill calls jesters or trials do not count. Go back to `full-stop` Stage 8.
+   Shadow and jester seats do not count. Go back to `full-stop` Stage 8.
 3. Otherwise decide what to do with each confirmed finding. Fix the ones that are real defects in
    what was asked for. **Avoid feature creep and push back on overscoped findings.** A reviewer
    who wants more features, more configuration, more abstraction or handling for cases the
