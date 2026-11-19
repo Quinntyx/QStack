@@ -45,10 +45,10 @@ runs each round; this file is the loop around it.
 ## When it will not pass
 
 Stop when you reach the round cap, or sooner when rounds have stopped moving the scores and you
-are only trading one finding for another. Running out of rounds is not a pass. Then choose:
+are only trading one finding for another. Running out of rounds is not a pass. Stopping and
+asking the user is expensive: try a different approach before you hand the change back. Then
+choose:
 
-- **Hand it back.** Report the scores per round and each open disagreement from both sides, and
-  ask the user. `full-send` does not merge a change whose council did not pass.
 - **Redesign.** Take the findings that would not close back to a design round, as `full-stop`
   Stage 2 does, adding the approach you tried and what kept going wrong with it. Rebuild from
   Stage 3 and start the rounds again with a fresh count.
@@ -67,3 +67,6 @@ are only trading one finding for another. Running out of rounds is not a pass. T
 
   The result is one base PR with two competing PRs on top. Hand all three to the user to pick;
   do not merge either competitor.
+- **Hand it back**, only after a redesign has also failed to pass, or when the open disagreement
+  is a choice only the user can make. Report the scores per round and each open disagreement from
+  both sides, and ask the user. `full-send` does not merge a change whose council did not pass.
