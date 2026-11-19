@@ -46,8 +46,9 @@ runs each round; this file is the loop around it.
 
 Stop when you reach the round cap, or sooner when rounds have stopped moving the scores and you
 are only trading one finding for another. Running out of rounds is not a pass. Stopping and
-asking the user is expensive: try a different approach before you hand the change back. Then
-choose:
+asking the user is expensive, so first work out why the rounds stalled: if the findings that
+will not close come from the approach itself, a different approach is usually worth trying
+before you hand the change back. Then choose:
 
 - **Redesign.** Take the findings that would not close back to a design round, as `full-stop`
   Stage 2 does, adding the approach you tried and what kept going wrong with it. Rebuild from
@@ -67,6 +68,8 @@ choose:
 
   The result is one base PR with two competing PRs on top. Hand all three to the user to pick;
   do not merge either competitor.
-- **Hand it back**, only after a redesign has also failed to pass, or when the open disagreement
-  is a choice only the user can make. Report the scores per round and each open disagreement from
-  both sides, and ask the user. `full-send` does not merge a change whose council did not pass.
+- **Hand it back** when the stall is not about the approach (the request is unclear, the
+  reviewers want something it never asked for, or what is left is a choice only the user can
+  make), or when a redesign has also failed to pass. Report the scores per round and each open
+  disagreement from both sides, and ask the user. `full-send` does not merge a change whose
+  council did not pass.
