@@ -72,6 +72,9 @@ metadata:
 
 ## Stage 3: Write it
 
+Read `../../deslop/SKILL.md` first. It covers how the text reads; the steps below say what goes
+in it.
+
 1. Follow the repository's template and its vocabulary. The title follows the repository's commit
    convention. Where PRs are squash-merged under conventional commits, the title is the
    conventional subject line (`fix: stop the cache evicting pinned entries`), because it becomes

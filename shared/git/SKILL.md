@@ -96,7 +96,8 @@ Everything else (locate, clone, fork, branch, commit, push) continues at Stage 2
    the changed files, and stage exact paths so changes that are not yours stay out.
 3. Commit when the task includes committing; Publication below says when it does. The message
    uses conventional commits (`feat:`, `fix:`, `chore:` and so on) unless the repository uses
-   another format. No model or agent tool appears as a co-author or in any trailer.
+   another format, and its wording follows `../deslop/SKILL.md`. No model or agent tool appears
+   as a co-author or in any trailer.
 4. Before a push, check the remote, the destination branch and that your branch contains the
    remote's commits. If the remote moved, fetch and rebase or merge; keep the other person's
    work. Force-pushing, rewriting history, pruning and merging into the default branch each need

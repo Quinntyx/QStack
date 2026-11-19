@@ -78,6 +78,9 @@ missing.
 
 ## Stage 4: Write it
 
+Read `../../deslop/SKILL.md` first. It covers how the text reads; the steps below say what goes
+in it.
+
 1. Write a neutral sentence-case title that can be understood without opening the issue. A bug
    title describes the symptom; a feature title names the capability wanted. Use the prefixes and
    vocabulary the repository uses. Keep a guessed diagnosis out of the title.
