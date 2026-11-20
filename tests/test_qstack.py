@@ -16,6 +16,18 @@ def run(cmd, **kwargs):
     return subprocess.run([str(c) for c in cmd], capture_output=True, text=True, **kwargs)
 
 
+def files(path):
+    return {str(f.relative_to(path)): f.read_bytes() for f in path.rglob("*")
+            if f.is_file() and f.name != ".qstack-source"}
+
+
+def assert_copy(test, path, source):
+    """Antigravity gets a real directory, not a link, holding the source's files."""
+    test.assertFalse(path.is_symlink())
+    test.assertEqual(files(path), files(source))
+    test.assertEqual((path / ".qstack-source").read_text().strip(), str(source))
+
+
 class RepoCheck(unittest.TestCase):
     def test_repository_passes(self):
         result = run([QSTACK, "check"])
@@ -159,6 +171,11 @@ class MultipleHarnesses(unittest.TestCase):
 
     def assert_installed(self, harnesses):
         for harness in harnesses:
+            if harness == "antigravity":
+                assert_copy(self, self.skills[harness] / "council", ROOT / "shared/council")
+                assert_copy(self, self.skills[harness] / "harness-config",
+                            ROOT / "antigravity/harness-config")
+                continue
             self.assertEqual((self.skills[harness] / "council").resolve(), ROOT / "shared/council")
             self.assertEqual((self.skills[harness] / "harness-config").resolve(),
                              ROOT / harness / "harness-config")
@@ -185,7 +202,7 @@ class MultipleHarnesses(unittest.TestCase):
         removed = self.command("uninstall", *harnesses)
         self.assertEqual(removed.returncode, 0, removed.stderr)
         for skills in self.skills.values():
-            self.assertFalse((skills / "council").is_symlink())
+            self.assertFalse(os.path.lexists(skills / "council"))
 
     def test_subset_only_and_dry_run_apply_to_every_selected_harness(self):
         args = ["install", "claude", "antigravity", "--only", "council", "--no-system"]
@@ -307,9 +324,9 @@ class Antigravity(unittest.TestCase):
             result = run([QSTACK, "install", "antigravity"], env=env)
             self.assertEqual(result.returncode, 0, result.stderr + result.stdout)
             home = Path(tmp) / ".gemini"
-            self.assertEqual((home / "config/skills/council").resolve(), ROOT / "shared/council")
-            self.assertEqual((home / "config/skills/harness-config").resolve(),
-                             ROOT / "antigravity/harness-config")
+            assert_copy(self, home / "config/skills/council", ROOT / "shared/council")
+            assert_copy(self, home / "config/skills/harness-config",
+                        ROOT / "antigravity/harness-config")
             self.assertIn("estimate-time", (home / "GEMINI.md").read_text())
             self.assertFalse((Path(tmp) / "claude").exists())
 
@@ -325,8 +342,9 @@ class Antigravity(unittest.TestCase):
             (profile / "config/skills").symlink_to(home / "config/skills", target_is_directory=True)
             self.assertEqual((profile / "config/skills/council/SKILL.md").read_text(),
                              (ROOT / "shared/council/SKILL.md").read_text())
-            self.assertEqual((profile / "config/skills/harness-delegation").resolve(),
-                             ROOT / "antigravity/harness-delegation")
+            # Antigravity only reads skill files whose real path stays in a skills directory.
+            self.assertEqual((profile / "config/skills/harness-delegation/SKILL.md").resolve(),
+                             (home / "config/skills/harness-delegation/SKILL.md").resolve())
             self.assertFalse((profile / "GEMINI.md").exists())
             status = run([QSTACK, "status", "antigravity"], env=env)
             self.assertEqual(status.returncode, 0, status.stderr)
@@ -355,7 +373,7 @@ class Antigravity(unittest.TestCase):
             removed = run([QSTACK, "uninstall", *args])
             self.assertEqual(removed.returncode, 0, removed.stderr)
             self.assertEqual(prompt.read_text(), original)
-            self.assertFalse((home / "config/skills/council").is_symlink())
+            self.assertFalse(os.path.lexists(home / "config/skills/council"))
             self.assertIn("missing", run([QSTACK, "status", *args]).stdout)
 
     def test_stale_prompt_is_updated_without_losing_surrounding_text(self):
@@ -379,7 +397,7 @@ class Antigravity(unittest.TestCase):
             result = run([QSTACK, "install", *args])
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertEqual({p.name for p in dest.iterdir()}, {"council", "harness-config"})
-            self.assertEqual((dest / "harness-config").resolve(), ROOT / "antigravity/harness-config")
+            assert_copy(self, dest / "harness-config", ROOT / "antigravity/harness-config")
             self.assertRegex(run([QSTACK, "status", *args]).stdout, r"skipped\s+system prompt")
             result = run([QSTACK, "uninstall", *args])
             self.assertEqual(result.returncode, 0, result.stderr)
@@ -406,7 +424,7 @@ class Antigravity(unittest.TestCase):
             before = (home / "GEMINI.md").read_text()
             result = run([QSTACK, "uninstall", *args, "--dry-run"])
             self.assertEqual(result.returncode, 0, result.stderr)
-            self.assertTrue((home / "config/skills/council").is_symlink())
+            assert_copy(self, home / "config/skills/council", ROOT / "shared/council")
             self.assertEqual((home / "GEMINI.md").read_text(), before)
 
     def test_conflicting_skill_directory_and_foreign_link_are_kept(self):
@@ -436,11 +454,26 @@ class Antigravity(unittest.TestCase):
             args = ["antigravity", "--dir", tmp, "--only", "harness-config"]
             dry = run([QSTACK, "install", *args, "--dry-run"])
             self.assertEqual(dry.returncode, 0, dry.stderr)
-            self.assertIn("relinked", dry.stdout)
+            self.assertIn("recopied", dry.stdout)
             self.assertEqual((Path(tmp) / "harness-config").resolve(), ROOT / "pi/harness-config")
             self.assertEqual(run([QSTACK, "install", *args]).returncode, 0)
-            self.assertEqual((Path(tmp) / "harness-config").resolve(),
-                             ROOT / "antigravity/harness-config")
+            assert_copy(self, Path(tmp) / "harness-config", ROOT / "antigravity/harness-config")
+
+    def test_old_links_and_changed_copies_are_replaced_with_current_copies(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            skills = Path(tmp) / "config/skills"
+            skills.mkdir(parents=True)
+            (skills / "council").symlink_to(ROOT / "shared/council", target_is_directory=True)
+            args = ["antigravity", "--home", tmp, "--only", "council,deslop"]
+            self.assertEqual(run([QSTACK, "install", *args]).returncode, 0)
+            (skills / "deslop/SKILL.md").write_text("edited")
+            self.assertRegex(run([QSTACK, "status", *args]).stdout, r"stale\s+deslop")
+            result = run([QSTACK, "install", *args])
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertIn("recopied  deslop", result.stdout)
+            assert_copy(self, skills / "council", ROOT / "shared/council")
+            assert_copy(self, skills / "deslop", ROOT / "shared/deslop")
+            self.assertEqual({p.name for p in skills.iterdir()}, {"council", "deslop"})
 
     def test_dir_without_subset_skips_system_prompt(self):
         with tempfile.TemporaryDirectory() as tmp:

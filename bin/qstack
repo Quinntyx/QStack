@@ -12,6 +12,9 @@ HARNESS is claude, pi or antigravity. install with no names selects all three.
 --profile NAME selects Pi's profile, including in a multi-harness command.
 
 A harness gets every skill in shared/ plus every skill in its own folder, each as one symlink.
+Antigravity gets copies instead, because it refuses to read files that resolve outside its
+skills directory. Each copy holds a .qstack-source file naming where it came from; run install
+again after editing a skill to refresh the copies.
 
 Where it installs:
   claude  HOME/skills, where HOME is --home, else $CLAUDE_CONFIG_DIR, else ~/.claude.
@@ -26,11 +29,12 @@ install also adds the harness's APPEND_SYSTEM.md to the system prompt, unless --
 the profile's APPEND_SYSTEM.md, for antigravity as a marked block inside HOME/GEMINI.md.
 Text outside the markers is never touched.
 
-install never replaces something that is not already a link into this repository.
+install never replaces something that is not already a link or copy made by QStack.
 """
 import argparse
 import os
 import re
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -40,6 +44,9 @@ HARNESSES = ("claude", "pi", "antigravity")
 NAME_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 LINK_RE = re.compile(r"`((?:\.\./)*[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)+\.(?:md|yaml|py))`")
 HARNESS_REF_RE = re.compile(r"`(harness-[a-z-]+)`")
+# Antigravity's file tools reject a skill file whose real path is outside its skills directory.
+COPY_HARNESSES = ("antigravity",)
+MARKER = ".qstack-source"
 
 
 def skills_in(folder):
@@ -229,7 +236,7 @@ def system_uninstall(args):
         return
     if not args.dry_run:
         if args.harness == "claude":
-            subprocess.run(["trash-put", "--", str(target)], check=True)
+            trash(target)
         else:
             before, _, after = split_block(target.read_text())
             target.write_text(before.rstrip("\n") + ("\n" if before.strip() else "") + after)
@@ -247,30 +254,60 @@ def selected(args):
     return skills
 
 
-def state(link, source):
+def tree(path):
+    """Every file under path, relative path to bytes, without the QStack marker."""
+    return {str(f.relative_to(path)): f.read_bytes() for f in sorted(path.rglob("*"))
+            if f.is_file() and f.name != MARKER}
+
+
+def state(link, source, copy=False):
     if link.is_symlink():
         dest = Path(os.path.realpath(link))
         if dest == source.resolve():
-            return "linked"
+            return "stale" if copy else "linked"
         return "stale" if ROOT in dest.parents else "foreign-link"
+    if (link / MARKER).is_file():
+        current = (link / MARKER).read_text().strip() == str(source) and tree(link) == tree(source)
+        return "linked" if current else "stale"
     return "conflict" if link.exists() else "missing"
+
+
+def trash(path):
+    subprocess.run(["trash-put", "--", str(path)], check=True)
+
+
+def place(source, link, copy):
+    """Put a fresh link or copy at link, replacing the QStack-made one there."""
+    tmp = link.with_name(f".{link.name}.qstack-tmp")
+    if tmp.is_symlink() or tmp.exists():
+        trash(tmp)
+    if not copy:
+        os.symlink(source, tmp)
+        os.replace(tmp, link)
+        return
+    shutil.copytree(source, tmp)
+    (tmp / MARKER).write_text(f"{source}\n")
+    if link.is_symlink() or link.exists():
+        trash(link)
+    os.rename(tmp, link)
 
 
 def install(args):
     dest = target_dir(args)
+    copy = args.harness in COPY_HARNESSES
     conflicts = 0
     if not args.dry_run:
         dest.mkdir(parents=True, exist_ok=True)
     for name, source in selected(args).items():
-        link, what = dest / name, state(dest / name, source)
+        link, what = dest / name, state(dest / name, source, copy)
         if what == "linked":
             print(f"ok        {name}")
         elif what in ("missing", "stale"):
             if not args.dry_run:
-                tmp = dest / f".{name}.qstack-tmp"
-                os.symlink(source, tmp)
-                os.replace(tmp, link)
-            print(f"{'relinked' if what == 'stale' else 'linked':9} {name} -> {source}")
+                place(source, link, copy)
+            verb = ("recopied" if what == "stale" else "copied") if copy else \
+                ("relinked" if what == "stale" else "linked")
+            print(f"{verb:9} {name} -> {source}")
         else:
             conflicts += 1
             print(f"CONFLICT  {name}: {link} exists and is not a QStack link; left untouched")
@@ -284,8 +321,9 @@ def install(args):
 
 def status(args):
     dest = target_dir(args)
+    copy = args.harness in COPY_HARNESSES
     for name, source in selected(args).items():
-        print(f"{state(dest / name, source):12} {name}")
+        print(f"{state(dest / name, source, copy):12} {name}")
     print(f"{system_state(args):12} system prompt")
     return 0
 
@@ -294,10 +332,10 @@ def uninstall(args):
     dest = target_dir(args)
     for name, source in selected(args).items():
         link = dest / name
-        if state(link, source) in ("linked", "stale"):
+        if state(link, source, args.harness in COPY_HARNESSES) in ("linked", "stale"):
             if not args.dry_run:
-                subprocess.run(["trash-put", "--", str(link)], check=True)
-            print(f"unlinked  {name}")
+                trash(link)
+            print(f"removed   {name}")
     if not args.only:
         system_uninstall(args)
     return 0
