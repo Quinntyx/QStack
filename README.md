@@ -51,6 +51,7 @@ Everything in `shared/` works in all three harnesses.
 | `project-plan` | Plan work in a `PLAN.md` that shrinks as its parts merge and is deleted when empty. I use it mostly for greenfield projects. |
 | `agent-repo-guidance` | Write or repair a repository's AGENTS.md or CLAUDE.md. |
 | `create-skill` | Write, revise and test a skill. |
+| `web-search` | Search the web, read pages and screenshot them. Uses the harness's own web tools, then curl, then Context.dev for pages those cannot load. |
 | `deslop` | Write text that leaves the conversation, from a README to a two-line email, without it sounding machine-made. |
 | `estimate-time` | Estimate how long agent work will take, from measured per-model times. |
 | `stack-philosophy` | Not a procedure. A description of me and how I work, in the same voice as this README, which an agent reads when a skill does not cover the situation so it can guess what I would want. |
@@ -65,6 +66,12 @@ skills name these by name and never mention a harness-specific tool.
 Delegation goes through T3 Code's `delegate_task` MCP tool, so several skills expect T3 Code. In
 T3, use the provider configured for the model. Standalone Antigravity can load the skills, but
 T3-managed delegation requires a T3 session.
+
+`web-search` falls back to [Context.dev](https://context.dev), a hosted browser and search API,
+when the harness's own tools and curl cannot get a page, and for screenshots of public pages.
+It needs an API key, read from `$CONTEXT_DEV_API_KEY` or `~/.config/context-dev/api_key`. The
+free plan gives 1,000 credits a month without a card. A page or a screenshot costs 1 credit and
+ten search results cost 1, so you should not have to pay for it.
 
 Some of `git` describes my own setup. I keep repositories on a Forgejo server that mirrors them
 to GitHub, so `github-mirror` is only useful if you do the same, and `init-project` bootstraps a
