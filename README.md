@@ -74,13 +74,16 @@ bottom of [`shared/git/SKILL.md`](shared/git/SKILL.md). Replace it with yours be
 
 ## Install
 
-`bin/qstack` links each skill into a harness as a symlink, so edits in this repository take
-effect right away. It needs Python 3.
+`bin/qstack` links each skill into Claude Code and Pi as a symlink, so edits in this repository
+take effect right away. Antigravity gets copies instead; see below. It needs Python 3.
 
 ```sh
 git clone https://github.com/Quinntyx/QStack.git
 cd QStack
 
+bin/qstack install                           # all three harnesses
+bin/qstack install claude pi antigravity      # the same, explicitly
+bin/qstack install claude antigravity         # just these two
 bin/qstack install claude                    # ~/.claude, or $CLAUDE_CONFIG_DIR if set
 bin/qstack install claude --home ~/.claude-work   # another Claude Code config directory
 bin/qstack install pi --profile NAME         # ~/.config/pi/profiles/NAME
@@ -90,12 +93,20 @@ bin/qstack install antigravity --dir .agents/skills   # project skills only
 ```
 
 A harness gets every skill in `shared/` plus its own folder. `--only full-stop,council` installs a
-subset and `--dry-run` shows what would change. `install` never overwrites a file or directory
-that is not already a QStack link; it reports a conflict and leaves it alone.
+subset and `--dry-run` shows what would change. These options apply to every selected target.
+`install` never overwrites a file or directory that is not already a QStack link; it reports a
+conflict, continues with the other targets, and exits unsuccessfully if any target had conflicts.
+
+Pi needs no explicit target: it uses `--profile NAME`, then `--home DIR`, then
+`$PI_CODING_AGENT_DIR` if set. Otherwise it installs into every existing profile under
+`~/.config/pi/profiles/`, or `~/.pi/agent` if there are no profiles. `--profile` selects only Pi's
+target in a multi-harness command. `--home` and `--dir` require exactly one harness so different
+harnesses cannot overwrite each other's bindings in a shared destination.
 
 `status` and `uninstall` take the same target options for all three harnesses:
 
 ```sh
+bin/qstack status claude pi antigravity
 bin/qstack status claude --home ~/.claude-work
 bin/qstack status pi --profile NAME
 bin/qstack status antigravity
@@ -103,16 +114,28 @@ bin/qstack uninstall pi --profile NAME
 bin/qstack uninstall antigravity
 ```
 
-`status` prints one line per skill: `linked`, `missing`, `stale` (a QStack link to the wrong
-place), `conflict` or `foreign-link` (something of yours is in the way). `uninstall` removes the
-links with `trash-put`, so it needs [trash-cli](https://github.com/andreafrancia/trash-cli).
+`status` and `uninstall` accept multiple harness names but require at least one explicit name.
+Each command prints the harness and skills directory before its results.
+
+`status` prints one line per skill: `linked` (installed and current), `missing`, `stale` (a
+QStack link to the wrong place, or an outdated copy), `conflict` or `foreign-link` (something of
+yours is in the way). `uninstall` removes links and copies with `trash-put`, and `install` uses it
+to replace outdated Antigravity copies, so both need
+[trash-cli](https://github.com/andreafrancia/trash-cli).
 
 ### Antigravity installations
 
 `bin/qstack install antigravity` uses Antigravity's global skills directory,
 `~/.gemini/config/skills/`. It works with a system installation and with the ACP runtime installed
 by T3 Code's **Install Antigravity** button. The managed executable need not be on `PATH`: QStack
-links skills into the user directory, not the runtime's download directory.
+installs skills into the user directory, not the runtime's download directory.
+
+Antigravity's file tools refuse to read a file whose real path is outside the workspace or its
+skills directory, so a symlinked skill shows up in the skill list but its `SKILL.md` cannot be
+opened. QStack therefore copies each skill directory, with a `.qstack-source` file naming where it
+came from. Run `bin/qstack install antigravity` again after editing a skill; `status` marks
+outdated copies `stale`, and `install` replaces them, overwriting any edits made to the copies.
+`install` also converts the symlinks older QStack versions made.
 
 T3 gives each Antigravity provider session a private `GEMINI_HOME` and links global skills from
 the real `~/.gemini` into it. QStack therefore uses `~/.gemini` even if `GEMINI_HOME` is set. Start
@@ -139,8 +162,10 @@ each harness folder has an `APPEND_SYSTEM.md` with both reminders, and `install`
   `APPEND_SYSTEM.md`. The rest of the file is left as it is, and a later `install` updates the
   block in place.
 - **Antigravity:** as the same marked block in `~/.gemini/GEMINI.md`, or `GEMINI.md` under
-  `--home`. T3 forwards global skills into its private profile, but does not forward this file;
-  its managed sessions get the skills, not this reminder.
+  `--home`. Antigravity reads `~/.gemini/GEMINI.md` even when `GEMINI_HOME` points elsewhere,
+  so T3's managed sessions get it too. Antigravity's block also tells the agent not to name
+  files in replies unless asked, and to re-read its active skills and their references after
+  its context is compacted, because Antigravity's compaction summary does not keep them.
 
 Pass `--no-system` to skip it. `--dir` skips it too, since a bare skills directory has no place
 for one. `--only` also skips the prompt. If a dotfile manager owns the target prompt file, the

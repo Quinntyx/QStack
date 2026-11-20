@@ -15,7 +15,9 @@ runs each round; this file is the loop around it.
 
 ## Each round
 
-1. Run one review round with the `council` skill, passing the rubric and any comparison material.
+1. Run one review round with the `council` skill, passing the rubric, any comparison material and
+   the target's number of decimal places (one for 9 or 9.5, two for 9.75). The target itself
+   stays out of the brief.
 2. **Passed** when every voting seat scores at or above the target, no confirmed `blocker` or `should`
    is open, and, with a comparison, every voting seat scores ours above each thing compared.
    Shadow and jester seats do not count. Go back to `full-stop` Stage 8.
@@ -43,10 +45,11 @@ runs each round; this file is the loop around it.
 ## When it will not pass
 
 Stop when you reach the round cap, or sooner when rounds have stopped moving the scores and you
-are only trading one finding for another. Running out of rounds is not a pass. Then choose:
+are only trading one finding for another. Running out of rounds is not a pass. Stopping and
+asking the user is expensive, so first work out why the rounds stalled: if the findings that
+will not close come from the approach itself, a different approach is usually worth trying
+before you hand the change back. Then choose:
 
-- **Hand it back.** Report the scores per round and each open disagreement from both sides, and
-  ask the user. `full-send` does not merge a change whose council did not pass.
 - **Redesign.** Take the findings that would not close back to a design round, as `full-stop`
   Stage 2 does, adding the approach you tried and what kept going wrong with it. Rebuild from
   Stage 3 and start the rounds again with a fresh count.
@@ -65,3 +68,8 @@ are only trading one finding for another. Running out of rounds is not a pass. T
 
   The result is one base PR with two competing PRs on top. Hand all three to the user to pick;
   do not merge either competitor.
+- **Hand it back** when the stall is not about the approach (the request is unclear, the
+  reviewers want something it never asked for, or what is left is a choice only the user can
+  make), or when a redesign has also failed to pass. Report the scores per round and each open
+  disagreement from both sides, and ask the user. `full-send` does not merge a change whose
+  council did not pass.

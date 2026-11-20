@@ -16,7 +16,8 @@ metadata:
   gets wrong) or **review** (a diff, PR or implementation to judge).
 - For a design round, the problem and everything you found researching it.
 - For a review round, the change, a rubric to score against, and optionally things to compare the
-  change with.
+  change with. If the caller has a target score, the number of decimal places it has (one if the
+  caller does not say).
 - T3 `delegate_task` to reach the panel's models; `harness-delegation` names the launch route.
 
 ## Output Contract
@@ -56,10 +57,12 @@ architecture, the reasons, the strongest objection to it, and what they would re
 command, the request in the user's own words, the rubric, and the decisions you made with a line
 of why for each. Leave out your exploration, your notes and your belief that it works: reviewers
 who explore on their own find what you missed, and reviewers handed your assumptions inherit
-them. Ask for this reply:
+them. Ask for the score to the caller's number of decimal places, at least one, and say so in
+the brief: reviewers left to choose answer in whole numbers, and a target of 9.5 is then out of
+reach. Say only the precision, never the target. Ask for this reply:
 
 ```
-SCORE: <n>/10 against the rubric
+SCORE: <n.n>/10 against the rubric, to <places> decimal places
 APPROACH: sound | wrong - <one line>
 F1 [blocker|should|nit] <file>:<line> <claim>. Fix: <suggestion>
 LINT: <a lint rule that would catch this kind of mistake mechanically, if there is one>
