@@ -51,7 +51,7 @@ Everything in `shared/` works in all three harnesses.
 | `project-plan` | Plan work in a `PLAN.md` that shrinks as its parts merge and is deleted when empty. I use it mostly for greenfield projects. |
 | `agent-repo-guidance` | Write or repair a repository's AGENTS.md or CLAUDE.md. |
 | `create-skill` | Write, revise and test a skill. |
-| `deslop` | Write prose a person will read without it sounding machine-made. |
+| `deslop` | Write text that leaves the conversation, from a README to a two-line email, without it sounding machine-made. |
 | `estimate-time` | Estimate how long agent work will take, from measured per-model times. |
 | `stack-philosophy` | Not a procedure. A description of me and how I work, in the same voice as this README, which an agent reads when a skill does not cover the situation so it can guess what I would want. |
 | `reflect` | Turn lessons from the current conversation into proposed skill edits. Adapted from pstack. |
@@ -148,10 +148,13 @@ See [Google's discovery paths](https://antigravity.google/docs/customization-dis
 
 ### The system prompt add
 
-`estimate-time` only works reliably when the agent is reminded, in every session, that agent work
-takes minutes and hours and that the skill exists. A skill description alone does not do that,
-because nothing triggers it when a model is about to write "this will take two weeks". So each
-harness folder has an `APPEND_SYSTEM.md` with that reminder, and `install` adds it:
+Two skills only work reliably when the agent is reminded of them in every session.
+`estimate-time` needs the agent to know that agent work takes minutes and hours and that the
+skill exists. A skill description alone does not do that, because nothing triggers it when a
+model is about to write "this will take two weeks". `deslop` needs to be loaded before any text
+that leaves the conversation, and without a reminder agents skip it for short text: asked to
+commit a staged change, they wrote the message without it because the message was short. So
+each harness folder has an `APPEND_SYSTEM.md` with both reminders, and `install` adds it:
 
 - **Claude Code:** as the link `rules/qstack.md` in the config directory. Claude Code loads every
   file in `rules/` at the start of a session.

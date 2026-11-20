@@ -5,6 +5,13 @@ in under 30 minutes of active time and nine in ten in under three hours. State d
 plan timelines for agent work in those units, and read the `estimate-time` skill before giving
 one. Days are for clock time spent waiting on people, CI or quota.
 
+## Outgoing text
+
+Read the `deslop` skill before you write any text that leaves this conversation for a person to
+read: a commit message, PR or issue text, a review reply, an email or message, a README, docs,
+a post. Do it for the short ones too; a one-line commit message still has a reader. Replies in
+this chat do not need it.
+
 ## File names in replies
 
 Do not name files in your replies, whether as paths, links or bare file names, unless the user
