@@ -1,9 +1,9 @@
 ---
 name: council
 description: "Use when a skill or the user asks for a council — how to put one question in front
-  of a panel of other models, each working blind, and read what comes back: a design round or a
-  scored review round. It does not decide when to hold a council or what to do with the result;
-  the skill or request that called it does."
+  of a panel of other models, each working blind, and bring their answers back: a design round,
+  a scored review round, or any other question. It does not decide when to hold a council or
+  what to do with the answers; the skill or request that called it does."
 metadata:
   type: procedure
 ---
@@ -12,19 +12,19 @@ metadata:
 
 ## Input Contract
 
-- The kind of round: **design** (no code yet: how to build something, which approach, what a plan
-  gets wrong) or **review** (a diff, PR or implementation to judge).
-- For a design round, the problem and everything you found researching it.
-- For a review round, the change, a rubric to score against, and optionally things to compare the
-  change with. If the caller has a target score, the number of decimal places it has (one if the
-  caller does not say).
+- The question, and what kind it is: a **design round** asks about something not yet built (how
+  to build it, which approach, what a plan gets wrong), a **review round** judges a change, and
+  anything else is an open question.
+- The material the question needs. For a review round, the change, a rubric, optionally things
+  to compare it with, and, when the caller needs a score, its number of decimal places (one if
+  the caller does not say).
 - T3 `delegate_task` to reach the panel's models; `harness-delegation` names the launch route.
 
 ## Output Contract
 
-- Design: each seat's proposed architecture, its reasons and its strongest objection.
-- Review: each voting seat's score, and the findings you confirmed against the code. With a
-  comparison, each seat's scores for every thing compared and what it preferred about each.
+- Each seat's answer in its own words, with the claims you checked marked as holding up or not.
+- When a score was asked for, each voting seat's score, and with a comparison its score for
+  every thing compared.
 - The tagged notes for your final reply.
 
 One call is one round. The caller decides whether to run another.
@@ -33,7 +33,7 @@ One call is one round. The caller decides whether to run another.
 
 ## Stage 1: Seat the panel
 
-Use the review panel for a review round and the design panel for a design round, from Panels
+Use the design panel for a design round and the review panel for any other question, from Panels
 below. If the user named seats, use exactly those for this run.
 
 Call `orchestrator_capabilities` and route each model per
@@ -47,30 +47,42 @@ Every member gets the same brief, as an ordinary task of its own. The brief does
 this is a council, that anyone else is answering, which models are involved, or what score the
 change needs. Members are read-only: no edits, commits, pushes, PR comments or subagents.
 
-**Design brief: everything you know.** The problem, the constraints, every relevant file and
+The brief is the material and the question. The kind of question decides the material. Gather
+what comes from the web with `../web-search/SKILL.md`; its Context.dev route is fine to use here.
+
+**Design round: everything you know.** The problem, the constraints, every relevant file and
 finding from your research with paths, how others have built the same thing, the options you see
 and what you have ruled out and why. Leave out the design you favor. These models are expensive;
-pay for their judgment, not for them to rediscover the repository. Ask for a recommended
-architecture, the reasons, the strongest objection to it, and what they would refuse to approve.
+pay for their judgment, not for them to rediscover the repository.
 
-**Review brief: as little as possible.** The repository path, the base revision, the one diff
+**Review round: as little as possible.** The repository path, the base revision, the one diff
 command, the request in the user's own words, the rubric, and the decisions you made with a line
 of why for each. Leave out your exploration, your notes and your belief that it works: reviewers
 who explore on their own find what you missed, and reviewers handed your assumptions inherit
-them. Ask for the score to the caller's number of decimal places, at least one, and say so in
-the brief: reviewers left to choose answer in whole numbers, and a target of 9.5 is then out of
-reach. Say only the precision, never the target. Ask for this reply:
+them. When the caller needs a score, ask for one out of 10 against the rubric, to the caller's
+number of decimal places, at least one, and say the precision in the brief: reviewers left to
+choose answer in whole numbers, and a target of 9.5 is then out of reach. Say only the
+precision, never the target.
 
-```
-SCORE: <n.n>/10 against the rubric, to <places> decimal places
-APPROACH: sound | wrong - <one line>
-F1 [blocker|should|nit] <file>:<line> <claim>. Fix: <suggestion>
-LINT: <a lint rule that would catch this kind of mistake mechanically, if there is one>
-```
+**Comparison: matched pairs.** Compare like with like, one item at a time:
 
-**With a comparison**, add the material on each thing being compared (screenshots, research
-notes, links) as files, and ask for the same rubric score for each one, then what the reviewer
-liked better about each, in sentences. The reasons matter more than the numbers.
+1. Go through what changed in ours and list what a reviewer needs to see of it. Cover every
+   change and, for an interface, the states that only show on interaction or at the edges:
+   hover tooltips, popups and menus, animations, empty, loading and error states. Capture each
+   item from the running build into its own file named for what it shows, within what
+   `../runtime-verification/SKILL.md` allows for browser work. An animation gets a short
+   recording or a few frames.
+2. For each item, find each compared product's own version of that feature in the same state,
+   and save it beside ours. Run the product when you can; otherwise look in its docs, release
+   notes, videos and published screenshots. When a product has no counterpart for an item,
+   write that beside the item.
+3. Give the reviewers the pairs, and ask for a score for each product and what they liked
+   better about each.
+
+**Open question: what an outsider needs to answer it.** Leave out the answer you expect.
+
+End the brief with the question. How to answer it, at what length and in what form, is each
+member's choice.
 
 ## Stage 3: Run the round
 
@@ -79,25 +91,27 @@ liked better about each, in sentences. The reasons matter more than the numbers.
 2. The round closes when the voting members and the shadow seats have answered. A shadow seat
    is always left to finish. Never wait for a jester; read a late jester answer when it
    arrives.
-3. A merged seat is one voice: pool its models' findings, and its score is the lower of theirs.
+3. A merged seat is one voice: its models' answers go back together under the seat, and its
+   score is the lower of theirs.
 
-## Stage 4: Read the result
+## Stage 4: Read the answers
 
-**Design.** Lay the proposals side by side: where they agree, where they differ, and what each
-objects to. Return that to the caller.
+Read each answer whole, and check what it claims about the code or other facts you can verify.
+Return each seat's answer to the caller in its own words: whole when it is short, quoted where
+shortening would lose why a point mattered to that member, with the claims you checked marked
+as holding up or not. Then say where the seats agree and where they differ.
 
-**Review.** Check every finding against the code yourself. `blocker` means the intended case is
-wrong, `should` means a real bug callers will hit, anything else is a `nit` whatever it was
-labelled. A finding that asks for more than the request asked for is out of scope, not a defect.
-Return each voting seat's score, the confirmed findings and any lint rules proposed. Never invent a score.
+When a score was asked for, give each voting seat's score. If a seat's answer does not account
+for how far below 10 it scored, report the gap as unexplained. Never invent a score.
 
-A shadow seat's findings go through the same check, with more doubt: assume each one is wrong
-until the code shows otherwise. One that holds up is used like any other confirmed finding. Its
-score is recorded and never counted.
+A shadow seat's claims go through the same check, with more doubt: assume each one is wrong
+until the code shows otherwise. One that holds up is used like any other. Its score is recorded
+and never counted.
 
 Cancel any voting delegate still running. Never cancel a shadow seat. A jester that has not
-answered is left to finish, and cancelled when the next round starts or the caller is done. Add the tagged notes to your final reply, one per line, each
-starting with its tag so a later search finds it:
+answered is left to finish, and cancelled when the next round starts or the caller is done.
+Add the tagged notes to your final reply, one per line, each starting with its tag so a later
+search finds it:
 
 ```
 sol_comparison: 6.2-sol@<effort> <score> vs 6.1-sol@xhigh <score>. Better: <which, or tie>. Only 6.2 found: <...>. Only 6.1 found: <...>. Both missed: <confirmed findings from other seats>. Wrong: <false findings, by model>.
