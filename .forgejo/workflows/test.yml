@@ -7,12 +7,13 @@ on:
 
 jobs:
   check:
-    runs-on: docker
+    runs-on: ubuntu-latest
     container:
       image: node:22-bookworm
     steps:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
+      - run: apt-get update && apt-get install -y --no-install-recommends trash-cli
       - run: python3 bin/qstack check
       - run: python3 -m unittest discover -s tests
