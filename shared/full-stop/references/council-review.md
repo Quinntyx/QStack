@@ -6,28 +6,27 @@ runs each round; this file is the loop around it.
 ## Before the first round
 
 1. Write the rubric: what a good version of this change looks like in this repository, from what
-   you have learned about its conventions, its users and the request. Keep the same rubric for
-   every round.
-2. With a comparison, collect material on each thing named: screenshots, and notes on how it
-   behaves, saved as files the reviewers can open.
-3. Take the settings from the request: the target score (9 if none was given), the round cap (5,
+   you have learned about its conventions, its users and the request, and whether a lint rule
+   could catch any of its mistakes mechanically. Keep the same rubric for every round.
+2. Take the settings from the request: the target score (9 if none was given), the round cap (5,
    or the count given, or none for "unlimited"), and the comparisons.
 
 ## Each round
 
-1. Run one review round with the `council` skill, passing the rubric, any comparison material and
-   the target's number of decimal places (one for 9 or 9.5, two for 9.75). The target itself
-   stays out of the brief.
-2. **Passed** when every voting seat scores at or above the target, no confirmed `blocker` or `should`
-   is open, and, with a comparison, every voting seat scores ours above each thing compared.
+1. Run one review round with the `council` skill, passing the rubric, the things to compare
+   with, and the target's number of decimal places (one for 9 or 9.5, two for 9.75). The target
+   itself stays out of the brief.
+2. **Passed** when every voting seat scores at or above the target, every bug found that held up
+   is fixed, and, with a comparison, every voting seat scores ours above each thing compared.
    Shadow and jester seats do not count. Go back to `full-stop` Stage 8.
-3. Otherwise decide what to do with each confirmed finding. Fix the ones that are real defects in
-   what was asked for. **Avoid feature creep and push back on overscoped findings.** A reviewer
-   who wants more features, more configuration, more abstraction or handling for cases the
-   request never raised is asking for a different PR; decline it in a line and record the
-   decision with its reason, so the next round's brief carries it. A 20-line change should leave
-   review as roughly a 20-line change.
-4. Reviewers may propose lint rules. You decide whether each goes in, and the default is yes:
+3. Otherwise read each seat's review for what kept its score down, and decide what to do about
+   each point. Fix the bugs that held up and change what you agree with. Where you disagree,
+   record why, so the next round's brief carries it. **Avoid feature creep and push back on
+   overscoped points.** A reviewer who wants more features, more configuration, more
+   abstraction or handling for cases the request never raised is asking for a different PR;
+   decline it in a line and record the decision with its reason, so the next round's brief
+   carries it. A 20-line change should leave review as roughly a 20-line change.
+4. When a reviewer proposes a lint rule, you decide whether it goes in, and the default is yes:
    a rule that catches a class of mistake mechanically keeps later rounds and builders from
    repeating it. Leave a rule out, or take it back out, when it gets in the way of the change
    you judge correct for the problem.
