@@ -22,8 +22,10 @@ metadata:
 
 - The PR open, unmerged and ready per the Readiness gate, or a blocked state with one question.
 - A handoff naming the PR link, final head, verdict, proof, remaining risks and the decisions you
-  made for the user. If a council ran, each round's scores, and the council skill's tagged notes copied in
-  word for word, one per line, so a later search of the conversation finds them.
+  made for the user. If builders ran, include a brief honest assessment of how each builder
+  performed per `../subagents/model-selection/SKILL.md`. If a council ran, include each round's
+  scores, and omit `sol_comparison` lines from the final handoff (they belong in the thread right
+  after each review round).
 - No PR watch or check-back schedule left active, and no delegate left running.
 
 # Entrypoint
@@ -54,7 +56,7 @@ skill:
 | `council 9.5 comp X and Y` | Also score X and Y, and require ours to beat each. `compare` and `comparison` mean the same. |
 
 "Improve our UI full stop unlimited council 9.5 comp ChatGPT Codex and Claude Code Desktop"
-means: improve the UI, review it until every voting seat scores it at least 9.5 and above both of
+means: improve the UI, review it until every seat scores it at least 9.5 and above both of
 those products, with no round cap. Without the word "council", no review council runs.
 
 ## Stage 2: Design
@@ -79,8 +81,9 @@ long benchmark. Hold the design round before spending the compute.
 
 Otherwise, choose the design yourself.
 
-When the whole change is small enough that writing a builder's brief would take longer than
-making it, a few dozen lines at most, make it yourself and go to Stage 5.
+When the change is small or tightly coupled enough that briefing a builder and reviewing its diff
+would cost more than making it directly (per `../subagents/model-selection/SKILL.md`), make it
+yourself and go to Stage 5.
 
 ## Stage 3: Plan
 
@@ -95,7 +98,7 @@ one a builder cannot drift from.
 
 ## Stage 4: Build
 
-Give each chunk to a builder through `../subagents/SKILL.md`, on the builder model named in
+Give each chunk to a builder through `../subagents/SKILL.md`, on a builder model named in
 `../subagents/model-selection/SKILL.md`. Write each brief so the builder has no architecture left
 to decide and little to explore: the chunk from `ARCHITECTURE.md`, the decisions that constrain
 it, the exact files and symbols, the patterns in the repository to copy, the commands that check
@@ -137,8 +140,11 @@ found and repaired afterwards goes in as `fix`, `chore` and the like.
 
 ## Stage 6: Clean up
 
-Make the diff small, and limited to the change that was asked for.
+Make the diff small, limited to the request, and clean enough for future agents to imitate.
 
+- In the code this change adds or touches, clean up sloppy boundaries, naming, or ownership so
+  future agents copy clean patterns, without adding speculative abstractions or touching
+  unrelated code.
 - Read every test that was added. Delete the ones that would not catch a real mistake.
 - Delete comments that narrate the code or restate it.
 - Run the project's formatter and linter.

@@ -35,7 +35,7 @@ request lets you publish. Then read the child that owns the operation and follow
 - Drafting, opening, revising or splitting a PR, or answering PR review: `pr/SKILL.md`.
 - Researching, drafting, filing, revising or answering an issue: `issues/SKILL.md`.
 
-The children are read through these paths; neither harness advertises them on its own.
+The children are read through these paths; none of the harnesses advertise them on their own.
 
 Dotfile and application configuration under a manager such as chezmoi is changed at that
 manager's source, on that repository's existing checkout, with an `edit-config` skill if you
@@ -86,7 +86,11 @@ Everything else (locate, clone, fork, branch, commit, push) continues at Stage 2
    `../subagents/SKILL.md` covers delegation.
 6. A new top-level thread is launched with `t3_thread_launch`, with the project and an explicit
    `workspaceStrategy`, when the user asks for a thread or a skill the user invoked calls for one.
-7. If T3 cannot provide the workspace, report that. A shell `git worktree add` does not bind a
+7. For stacked PRs and T3 thread stacks, keep each stacked branch cut from its base branch and
+   keep PR base/head refs wired to that order. Link every PR in the stack with `link_pull_requests`,
+   and when a base branch changes, rebase dependent branches with `t3_worktree_restack`. Do not
+   freely rewrite history on a branch that other branches are stacked on.
+8. If T3 cannot provide the workspace, report that. A shell `git worktree add` does not bind a
    T3 thread to it.
 
 ## Stage 5: Do the operation
@@ -94,15 +98,23 @@ Everything else (locate, clone, fork, branch, commit, push) continues at Stage 2
 1. Do the operation that was asked for and nothing beside it.
 2. Before a commit, read the whole diff you are about to commit, run the checks that apply to
    the changed files, and stage exact paths so changes that are not yours stay out.
-3. Commit when the task includes committing; Publication below says when it does. The message
-   uses conventional commits (`feat:`, `fix:`, `chore:` and so on) unless the repository uses
-   another format, and its wording follows `../deslop/SKILL.md`. No model or agent tool appears
-   as a co-author or in any trailer.
-4. Before a push, check the remote, the destination branch and that your branch contains the
+3. Commit when the task includes committing; Publication below says when it does. Use readable
+   conventional commit messages (`feat:`, `fix:`, `chore:` and so on) unless the repository uses
+   another format, keeping them short, typically a single line or single sentence rather than a
+   multi-paragraph body that can drift from the code. Wording follows `../deslop/SKILL.md`, and no
+   model or agent tool appears as a co-author or in any trailer.
+4. **Within a single task or PR branch that will be squash-merged** (unless the user said "no
+   commit", and not on `main`, `dev`, or a branch with others stacked on it), use Git aggressively
+   to manage working state: make checkpoint commits before risky edits or subagent runs, roll back
+   or revert bad changes, cherry-pick, and reshape local commits freely. Prefer checkpoint commits
+   over `git stash` because the stash stack is shared across worktrees and sweeps up parallel
+   edits. Operations across multiple branches (stacked PRs, T3 thread stacks, base/head wiring,
+   restacking, or merging) follow the explicit rules in Stage 4 and `pr/SKILL.md`.
+5. Before a push, check the remote, the destination branch and that your branch contains the
    remote's commits. If the remote moved, fetch and rebase or merge; keep the other person's
-   work. Force-pushing, rewriting history, pruning and merging into the default branch each need
-   to be asked for.
-5. If a remote write fails or times out, read the remote to see whether it landed before trying
+   work. Force-pushing a published or shared branch, rewriting history on a branch someone else is
+   using, pruning, and merging into the default branch each need to be asked for.
+6. If a remote write fails or times out, read the remote to see whether it landed before trying
    again.
 
 ## Stage 6: Report
@@ -120,8 +132,6 @@ checks you ran and what is still pending. A local-only branch has no upstream, a
   merging, migrating hosting, changing visibility, deploying, or installing into a live profile.
   Each is its own request.
 - Delete files with `trash`, which can be undone. Keep Git configuration changes repo-local.
-- Run a command you expect to take more than about 15 seconds in its own detached tmux session,
-  and read its output and exit status when it finishes.
 
 # My setup
 
@@ -136,7 +146,7 @@ Edit these in plain words. They are one person's conventions; replace them with 
 - My clones live at `~/docs/src/<repo>/main`. A clone of someone else's repository lives at
   `~/docs/src/<owner>_<repo>/main`.
 - My repositories have `main` and `dev`. Feature branches are named `feat-<description>` and cut
-  from `dev`.
+  from `dev`. My PRs squash-merge.
 - In a `dev` checkout of one of my repositories, a request to implement something includes
   committing and pushing it. A requested chezmoi change includes commit, push to `main` and a
   targeted apply; my `edit-config` skill, kept with my dotfiles, owns that.

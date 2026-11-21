@@ -19,8 +19,6 @@ metadata:
 - Pi's Git/npm package manager owns fetched plugins, extensions and skill caches. Change an owned
   fork and its installation declaration, then update only that package through the manager.
 - Auth, model registries, session stores and other runtime state stay out of tracked source.
-- Session history for a rehearsal comes from the active profile's session store or T3 thread
-  search, with the human sender established from message provenance.
 
 # Settings semantics
 

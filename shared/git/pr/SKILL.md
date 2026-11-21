@@ -89,8 +89,8 @@ in it.
    references, the check, and what is still open. Attribute quotations correctly.
 5. For a PR an agent built, end the description with one line naming the models that did the
    work, and the review if there was one: "Built with Opus 5.5 orchestrating DeepSeek V4.1
-   Flash, reviewed by a council of 6.1 Sol, 6.2 Sol, Opus 5.5 and GLM 5.3 with a final score of
-   9.83." Name the models that actually ran; the score is the mean of the voting seats' final
+   Flash, reviewed by a council of 6.1 Sol, 6.2 Sol and Opus 5.5 with a final score of 9.83."
+   Name the models that actually ran; the score is the mean of the seats' final
    scores. This line is the only mention of a model or agent tool: no model appears as a
    co-author or contributor, and no "Generated with" line, tool badge or other attribution goes
    in the description or in a commit trailer.

@@ -20,17 +20,10 @@ metadata:
 
 # Which provider runs a model
 
-- With `delegate_task`: Claude models on the Claude Code provider, **all other models on Pi**
-  (the Pi T3Main provider), even when the Claude Code provider also lists them.
+- With `delegate_task`, follow the provider routing in `model-selection`.
 
 # Waiting
 
 Pi cannot hold a turn open for background children. After an async launch, follow the returned
 `next` and let the thread go idle. The completion arrives as a wake turn, and that is when you
 read the result.
-
-# Standing defaults
-
-- Skill rehearsals (create-skill Stage 4) run on provider `pi_pi_t3main`, model
-  `opencode-go/glm-5.3-flash`, with normal defaults for every other setting, when
-  `orchestrator_capabilities` lists it. If it is not listed, say so.

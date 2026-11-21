@@ -124,5 +124,3 @@ For something published or edited, read it back from the host: repository, numbe
 body or reply, labels and author. Report the URL and a line on the result, with the limits of the
 evidence. For a draft, return the full title and body or reply and say it is unpublished. For a
 duplicate, return the existing URL and whether you posted to it.
-
-Run a command you expect to take more than about 15 seconds in its own detached tmux session.

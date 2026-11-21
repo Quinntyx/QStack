@@ -23,3 +23,10 @@ A compaction summary does not carry the instructions of the skills you were foll
 your context is compacted or summarized, before you take another step, read again the `SKILL.md`
 of every skill the summary shows in use, and every reference file of those skills that the
 remaining work relies on. Do not continue from the summary's next steps alone.
+
+## Reading files and search output
+
+Locate targets with `rg -l` or `rg -n` before opening files, and open only the files on the path
+you need instead of speculative batches. Pass `StartLine` and `EndLine` when reading code or data
+files over ~400 lines (still read skill `SKILL.md` and reference files in full), and bound noisy
+search commands so context stays well below 200k tokens.

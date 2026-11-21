@@ -16,9 +16,9 @@ runs each round; this file is the loop around it.
 1. Run one review round with the `council` skill, passing the rubric, the things to compare
    with, and the target's number of decimal places (one for 9 or 9.5, two for 9.75). The target
    itself stays out of the brief.
-2. **Passed** when every voting seat scores at or above the target, every bug found that held up
-   is fixed, and, with a comparison, every voting seat scores ours above each thing compared.
-   Shadow and jester seats do not count. Go back to `full-stop` Stage 8.
+2. **Passed** when every seat scores at or above the target, every bug found that held up
+   is fixed, and, with a comparison, every seat scores ours above each thing compared. Go
+   back to `full-stop` Stage 8.
 3. Otherwise read each seat's review for what kept its score down, and decide what to do about
    each point. Fix the bugs that held up and change what you agree with. Where you disagree,
    record why, so the next round's brief carries it. **Avoid feature creep and push back on
@@ -32,10 +32,9 @@ runs each round; this file is the loop around it.
    you judge correct for the problem.
 5. With a comparison, read what the reviewers preferred about the other products. Those reasons
    say what to improve next better than the scores do.
-6. Size the fixes. A few small ones you make yourself. More than a couple of hundred lines, or
-   anything that needs careful checking in the running app, goes to a builder, briefed as in
-   `full-stop` Stage 4: every piece of context it needs, and exactly what you want, so it has no
-   design to invent.
+6. Size the fixes. Small or tightly coupled fixes you make yourself. Larger, cleanly separable
+   fixes go to a builder, briefed as in `full-stop` Stage 4: every piece of context it needs, and
+   exactly what you want, so it has no design to invent.
 7. Check the fixes the way `full-stop` Stage 5 does, then commit. Commits made between rounds
    should be `fix` or `chore`. If you are about to write `feat`, stop and ask whether the
    council has talked you into a feature nobody requested.

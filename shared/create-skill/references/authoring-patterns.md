@@ -1,7 +1,7 @@
 # Authoring patterns and research basis
 
-Read this when choosing a router, shared reference, example, or evaluation strategy. This reference
-inherits the create-skill contract; it does not grant tool or publication authority.
+Read this when choosing a router, shared reference, or example. This reference inherits the
+create-skill contract; it does not grant tool or publication authority.
 
 ## Choose the context boundary
 
@@ -32,28 +32,10 @@ help or tool schema and show placeholders that cannot be mistaken for real crede
 Examples are unnecessary for a familiar rule that already has a clear measurable result. Move a
 catalog of examples out of the entrypoint; retain only those needed for the current branch.
 
-## Evaluation design
-
-- Positive trigger: the ordinary user request the skill should recognize.
-- Negative trigger: a plausible adjacent request that should not load it or should select another
-  branch. Include borderline cases rather than only obviously unrelated topics.
-- Effect boundary: draft-only, read-only, local-only, or coordinator-owned delivery produces no
-  unassigned publication/application. A genuine execution request should not get stuck at advice.
-- Failure boundary: unavailable tool, changed dependency/version, partial write, cancellation, or
-  lost response. Inspect state before retrying an uncertain side effect.
-- Output acceptance: check observable artifacts, behavior, and truthful limitations; a transcript
-  repeating the skill's wording is not success. Prefer real backend semantics over echo-only stubs.
-- Compare changed skill with its previous version or no-skill baseline using matched inputs. Record
-  model/harness revision, settings, task data, pass/fail evidence, and meaningful cost differences.
-  Qualitative critique is appropriate for taste; avoid self-awarded numeric quality scores.
-- Do not automatically import a source author's orchestration harness, agent count, browser viewer,
-  or upload mechanism. Use the actual task's permissions and the smallest useful evaluation tier.
-
 ## Sources checked 2026-10-27
 
-- Anthropic skill creator: progressive disclosure, short concrete format examples, realistic tasks,
-  baseline comparison, output evaluation, and description/trigger evaluation. Its full multi-agent
-  benchmark workflow is optional here, not a universal cost imposed on every revision.
+- Anthropic skill creator: progressive disclosure and short concrete format examples. Its
+  multi-agent benchmark workflow is not used here.
   https://github.com/anthropics/skills/blob/dbd4588f9e1033efb41dad4bef2f7947c8993d44/skills/skill-creator/SKILL.md
 - Matt Pocock writing-for-agents: conditional context pointers, separate context/cognitive loads,
   steps versus reference, co-location, checkable completion criteria, and one authoritative owner.

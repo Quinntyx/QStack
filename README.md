@@ -12,8 +12,9 @@ open-weight models through [OpenCode Go](https://opencode.ai), which costs littl
 can use them freely.
 
 I use agents to run a lot of work in parallel with as little hand-holding as I can manage: I
-hand a task off, leave, and come back when it is finished. The skills are written for that, and
-they trust the model to do the right thing. The longer version of how I think about this is
+hand a task off, leave, and come back to finished work with decisions explained at the
+architecture level rather than a diff to read. The skills are written for that, and they
+trust the model to do the right thing. The longer version of how I think about this is
 [`shared/stack-philosophy/SKILL.md`](shared/stack-philosophy/SKILL.md), which the agents read
 too.
 
@@ -27,8 +28,8 @@ The other models each have one job:
 
 | Job | Model |
 | --- | --- |
-| Builder: implements one chunk of work from an explicit brief | DeepSeek V4.1 Flash, max effort, via OpenCode Go |
-| Review panel | GPT 6.1 / 6.2 Sol, Claude Opus 5.5, plus GLM 5.3 and Tidepool Alpha as shadow seats: on trial, heard but not counted |
+| Builder: implements cleanly separable chunks from an explicit brief | DeepSeek V4.1 Flash (OpenCode Go on Pi) and Hy4 Flash Free (OpenCode provider, free, tighter leash, mixed in to compare), max effort |
+| Review panel | GPT 6.1 / 6.2 Sol, Claude Opus 5.5 |
 | Design panel | Claude Fable 5.2, GPT 6.2 Astra |
 
 Fable and Astra sit only on design questions; they cost too much to run on every review. The
@@ -50,11 +51,11 @@ Everything in `shared/` works in all three harnesses.
 | `runtime-verification` | Decide what evidence a bug fix or change needs before calling it done. |
 | `project-plan` | Plan work in a `PLAN.md` that shrinks as its parts merge and is deleted when empty. I use it mostly for greenfield projects. |
 | `agent-repo-guidance` | Write or repair a repository's AGENTS.md or CLAUDE.md. |
-| `create-skill` | Write, revise and test a skill. |
+| `create-skill` | Write, revise and validate a skill. |
 | `web-search` | Search the web, read pages and screenshot them. Uses the harness's own web tools, then curl, then Context.dev for pages those cannot load. |
 | `deslop` | Write text that leaves the conversation, from a README to a two-line email, without it sounding machine-made. |
 | `estimate-time` | Estimate how long agent work will take, from measured per-model times. |
-| `stack-philosophy` | Not a procedure. A description of me and how I work, in the same voice as this README, which an agent reads when a skill does not cover the situation so it can guess what I would want. |
+| `stack-philosophy` | Not a procedure. The philosophy behind QStack, in the same voice as this README: how I work across parallel threads at the architecture level, keeping the codebase clean vs. YAGNI, model delegation, when to stop, and how to resolve doubt. Agents read it whenever they are unsure what to do. |
 | `reflect` | Turn lessons from the current conversation into proposed skill edits. Adapted from pstack. |
 
 `claude/`, `pi/` and `antigravity/` each hold three `harness-*` skills (`harness-config`,
@@ -171,8 +172,9 @@ each harness folder has an `APPEND_SYSTEM.md` with both reminders, and `install`
 - **Antigravity:** as the same marked block in `~/.gemini/GEMINI.md`, or `GEMINI.md` under
   `--home`. Antigravity reads `~/.gemini/GEMINI.md` even when `GEMINI_HOME` points elsewhere,
   so T3's managed sessions get it too. Antigravity's block also tells the agent not to name
-  files in replies unless asked, and to re-read its active skills and their references after
-  its context is compacted, because Antigravity's compaction summary does not keep them.
+  files in replies unless asked, to re-read its active skills and their references after its
+  context is compacted (because Antigravity's compaction summary does not keep them), and to
+  narrow searches and pass line ranges on large code files so context stays below 200k tokens.
 
 Pass `--no-system` to skip it. `--dir` skips it too, since a bare skills directory has no place
 for one. `--only` also skips the prompt. If a dotfile manager owns the target prompt file, the
@@ -189,4 +191,5 @@ python3 -m unittest discover -s tests
 
 `bin/qstack check` validates frontmatter, confirms all harness folders offer the same skill names,
 and resolves every relative link as each harness will see it once installed. It cannot tell you
-whether a model picks up and follows a skill; for that, try it in a fresh session.
+whether a model picks up and follows a skill; validate that in real work and revise the skill when
+issues show up.

@@ -121,5 +121,4 @@ GitHub is lost at the first sync. Settle the refs before that.
 5. Report the mirror destination, completion time, last error, whether the refs match, the local
    remotes and tracking, and anything pending.
 
-Run a command you expect to take more than about 15 seconds in its own detached tmux session.
 Delete files with `trash`.

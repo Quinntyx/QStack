@@ -41,19 +41,23 @@ leave with it.
 ## Stage 1: Understand what is wanted
 
 Read the request and anything already in the repository. Work out the outcome, how the user will
-know it works, the constraints, and the decisions they have already made.
+know it works, the constraints, and the decisions they have already made. If a proposed design has
+a flaw, push back directly with what breaks and your proposed fix; wait for the user's call when
+the correction changes the architecture, data model, or contracts, and otherwise update the plan
+and explain what you adjusted.
 
-If a missing decision would change the design in a way that is expensive to undo, look for the
-answer in what you have. If it is not there, ask one question with the options and your
-recommendation, and plan the parts that do not depend on it meanwhile. Record cheaper assumptions
-in the plan and move on.
+If a missing decision would change the data model, public contracts, or major dependencies in a
+way that is expensive to undo, look for the answer in what you have. If it is not there, ask one
+question with the options and your recommendation, and plan the parts that do not depend on it
+meanwhile. Record cheaper assumptions in the plan, explain them in the summary, and move on.
 
 ## Stage 2: Choose the design
 
 Research how the pieces will fit: the interfaces, where state lives, what depends on what, and
 the external services or libraries the design leans on, checked against their own documentation.
-Choose the smallest design that reaches the outcome, and say why its boundaries fit the
-constraints.
+Choose the smallest design that reaches the outcome without speculative abstractions, make
+ownership and boundaries clean enough for future PRs to build on, and say why its boundaries fit
+the constraints.
 
 ## Stage 3: Write PLAN.md
 

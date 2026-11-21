@@ -8,7 +8,8 @@ this session; without it, say so and stop.
 Call `orchestrator_capabilities` once per thread. It lists the providers, the models each offers,
 their options (such as effort) and the runtime modes. Call it again only after an error or when
 the user names a different provider. A model or provider that is not listed is unavailable: say
-so, and leave the choice of a substitute to the user.
+so, and leave the choice of a substitute to the user unless `../model-selection/SKILL.md` defines
+a fallback.
 
 ## Parameters
 

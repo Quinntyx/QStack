@@ -10,7 +10,8 @@ metadata:
 # Ownership
 
 - Resolve managed configuration to its owner's source before editing. Skills installed from QStack
-  are symlinks into a QStack clone; edit that repository, not the installed link's parent directory.
+  are copies with a `.qstack-source` file naming the QStack clone; edit that repository and rerun
+  `bin/qstack install antigravity`, never edit the installed copies directly.
 - T3 Code owns its downloaded Antigravity ACP runtime and private provider profiles. Use provider
   settings for runtime installation, binary selection and sign-in. Keep credentials, caches and
   generated profile files out of tracked source.

@@ -21,9 +21,8 @@ metadata:
 
 # Which provider runs a model
 
-- With `delegate_task`: Claude models on the Claude Code provider, **all other models on Pi**
-  (the Pi T3Main provider), even when the Claude Code provider also lists them.
-- Inside a native dynamic workflow (`Workflow`): every model runs inside Claude Code, the
+- With `delegate_task`, follow the provider routing in `model-selection`.
+- Inside a native dynamic workflow (`Workflow`), every model runs inside Claude Code, the
   non-Claude ones included, so the workflow keeps running without a break.
 
 # T3 tools

@@ -58,8 +58,13 @@ Put large inputs in files and give their paths.
    the files its brief gives it. They see your uncommitted work and each other's as it lands.
 4. Use a worktree (`isolation: 'worktree'`) for children that would edit the same files, or for
    competing versions of the same piece. A worktree starts from your last commit, so commit
-   first: edits you have not committed do not exist there. T3 makes the worktree. A checkout
+   first: edits you have not committed do not exist there. T3 makes the worktree; a checkout
    made in the shell, or a path written in a brief, does not bind a child to a project.
+5. Within a squash-merged task branch, manage Git however helps you orchestrate cleanly:
+   checkpoint before launching children, let children make short one-line commits you can
+   cherry-pick or drop, or commit results yourself. How you slice commits inside the branch is up
+   to you; if a child commits inside a shared checkout, have its brief tell it to stage only its
+   owned paths so it does not sweep up sibling edits.
 
 ## Stage 4: Wait
 
@@ -71,11 +76,14 @@ Cancel a child you have replaced or no longer need with `task_cancel`.
 ## Stage 5: Read what came back
 
 A child's summary is a claim. Open what it changed or found and check it against the brief: run
-the check commands, read the diff, open the cited source.
+the check commands, read the diff, open the cited source. After reading a builder's diff, emit the
+`builder_review:` line per `model-selection/SKILL.md`.
 
-When a piece is wrong or incomplete, fix a small thing yourself. For anything larger, correct
-the brief and launch a new child. Children are one-shot, so the new brief carries the old child's
-summary, its branch, and what was wrong.
+When a piece is wrong or incomplete, use Git to roll back or cherry-pick around bad edits rather
+than untangling them by hand, scoping any rollback in a shared checkout to that child's owned
+files (or waiting until sibling children finish) so you do not clobber parallel work. Fix a small
+thing yourself; for anything larger, correct the brief and launch a new child. Children are
+one-shot, so the new brief carries the old child's summary, its branch, and what was wrong.
 
 ## Stage 6: Bring it together
 
@@ -83,7 +91,8 @@ Work done in your checkout is already together. Merge any worktree branches you 
 dependency order, resolving conflicts toward what the whole change needs. Then check the
 combined result once by running it: pieces that each pass alone can still fail together.
 
-Report what was done, what is still open, and each T3 child by its link.
+Report what was done, what is still open, a 1-2 line builder note if builders ran (per
+`model-selection/SKILL.md`), and each T3 child by its link.
 
 # Research in parallel
 
