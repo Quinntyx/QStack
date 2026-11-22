@@ -122,14 +122,17 @@ bin/qstack uninstall pi --profile NAME
 bin/qstack uninstall antigravity
 ```
 
-`status` and `uninstall` accept multiple harness names but require at least one explicit name.
-Each command prints the harness and skills directory before its results.
+`status` and `uninstall` accept multiple harness names but require at least one explicit name, and
+`uninstall` also honors `--no-system`. Each command prints the harness and skills directory before
+its results.
 
 `status` prints one line per skill: `linked` (installed and current), `missing`, `stale` (a
-QStack link to the wrong place, or an outdated copy), `conflict` or `foreign-link` (something of
-yours is in the way). `uninstall` removes links and copies with `trash-put`, and `install` uses it
-to replace outdated Antigravity copies, so both need
-[trash-cli](https://github.com/andreafrancia/trash-cli).
+QStack link to the wrong place, or an outdated copy), `orphaned` (a QStack-owned entry whose skill
+no longer exists for that harness), and `conflict` or `foreign-link` (something of yours is in the
+way). Full `install` and `uninstall` (without `--only`) remove orphaned QStack skills with
+`trash-put` while leaving non-QStack entries untouched. `uninstall` also uses `trash-put` to remove
+installed links and copies, and `install` uses it to replace outdated Antigravity copies, so both
+need [trash-cli](https://github.com/andreafrancia/trash-cli).
 
 ### Antigravity installations
 

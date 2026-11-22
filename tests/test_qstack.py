@@ -12,8 +12,14 @@ QSTACK = ROOT / "bin" / "qstack"
 SKILL = "---\nname: {name}\ndescription: \"Use when testing.\"\nmetadata:\n  type: guideline\n---\n\n{body}\n"
 
 
-def run(cmd, **kwargs):
-    return subprocess.run([str(c) for c in cmd], capture_output=True, text=True, **kwargs)
+def run(cmd, env=None, **kwargs):
+    with tempfile.TemporaryDirectory() as tmp:
+        merged = dict(os.environ if env is None else env)
+        if env is None or merged.get("HOME") == os.environ.get("HOME"):
+            merged["HOME"] = tmp
+        if env is None or merged.get("XDG_DATA_HOME") == os.environ.get("XDG_DATA_HOME"):
+            merged["XDG_DATA_HOME"] = f"{merged['HOME']}/.local/share"
+        return subprocess.run([str(c) for c in cmd], capture_output=True, text=True, env=merged, **kwargs)
 
 
 def files(path):
@@ -489,6 +495,72 @@ class Antigravity(unittest.TestCase):
                           "--only", "does-not-exist"])
             self.assertNotEqual(result.returncode, 0)
             self.assertIn("unknown skills for antigravity", result.stderr)
+
+
+class Orphans(unittest.TestCase):
+    def test_orphans_detected_and_cleaned_without_touching_foreign_entries(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            home = Path(tmp)
+            env = {k: v for k, v in os.environ.items()
+                   if k not in ("CLAUDE_CONFIG_DIR", "PI_CODING_AGENT_DIR")}
+            env.update(HOME=str(home), XDG_DATA_HOME=str(home / ".local/share"))
+            repo = home / "repo"
+            (repo / "bin").mkdir(parents=True)
+            qstack = repo / "bin/qstack"
+            shutil.copy(QSTACK, qstack)
+            for name in ("alpha", "stay"):
+                (repo / "shared" / name).mkdir(parents=True)
+                (repo / "shared" / name / "SKILL.md").write_text(SKILL.format(name=name, body="Body."))
+            for harness in ("claude", "pi", "antigravity"):
+                (repo / harness).mkdir()
+                (repo / harness / "APPEND_SYSTEM.md").write_text("Reminder.\n")
+
+            self.assertEqual(run([qstack, "install"], env=env).returncode, 0)
+            targets = [home / ".claude/skills", home / ".pi/agent/skills", home / ".gemini/config/skills"]
+            chain = home / "chain-stay"
+            chain.symlink_to(repo / "shared/stay")
+            for dest in targets:
+                (dest / "keep-me").mkdir()
+                (dest / "keep-me/SKILL.md").write_text("Foreign.")
+                (dest / "other-checkout").mkdir()
+                (dest / "other-checkout/.qstack-source").write_text(f"{home}/other/shared/other-checkout\n")
+            (targets[0] / "chained-stay").symlink_to(chain)
+
+            # Rename alpha -> beta so alpha becomes orphaned across all three harnesses.
+            (repo / "shared/alpha").rename(repo / "shared/beta")
+            (repo / "shared/beta/SKILL.md").write_text(SKILL.format(name="beta", body="Renamed."))
+
+            status = run([qstack, "status", "claude", "pi", "antigravity"], env=env)
+            self.assertEqual(status.stdout.count("orphaned     alpha"), 3)
+            self.assertNotIn("keep-me", status.stdout)
+            self.assertNotIn("other-checkout", status.stdout)
+
+            # --only and --dry-run leave orphans intact.
+            self.assertEqual(run([qstack, "install", "--only", "stay"], env=env).returncode, 0)
+            self.assertEqual(run([qstack, "install", "--dry-run"], env=env).returncode, 0)
+            self.assertTrue(all(os.path.lexists(d / "alpha") for d in targets))
+            self.assertNotEqual(run([qstack, "install", "--only", ""], env=env).returncode, 0)
+
+            # Full install trashes orphans and installs beta while keeping foreign entries.
+            res = run([qstack, "install"], env=env)
+            self.assertEqual(res.returncode, 0, res.stderr)
+            self.assertEqual(res.stdout.count("removed   alpha (orphaned)"), 3)
+            for dest in targets:
+                self.assertFalse(os.path.lexists(dest / "alpha"))
+                self.assertTrue((dest / "beta/SKILL.md").is_file())
+                self.assertEqual((dest / "keep-me/SKILL.md").read_text(), "Foreign.")
+                self.assertTrue((dest / "other-checkout").is_dir())
+            self.assertTrue((targets[0] / "chained-stay").is_symlink())
+
+            # Full uninstall also cleans newly orphaned skills and honors --no-system.
+            (repo / "shared/beta").rename(home / "deleted-beta")
+            rm = run([qstack, "uninstall", "claude", "pi", "antigravity", "--no-system"], env=env)
+            self.assertEqual(rm.returncode, 0, rm.stderr)
+            self.assertEqual(rm.stdout.count("removed   beta (orphaned)"), 3)
+            self.assertTrue((home / ".claude/rules/qstack.md").is_symlink())
+            for dest in targets:
+                self.assertFalse(os.path.lexists(dest / "beta"))
+                self.assertEqual((dest / "keep-me/SKILL.md").read_text(), "Foreign.")
 
 
 if __name__ == "__main__":
