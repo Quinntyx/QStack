@@ -59,10 +59,21 @@ pay for their judgment, not for them to rediscover the repository.
 command, the request in the user's own words, the rubric, and the decisions you made with a line
 of why for each. Leave out your exploration, your notes and your belief that it works: reviewers
 who explore on their own find what you missed, and reviewers handed your assumptions inherit
-them. When the caller needs a score, ask for one out of 10 against the rubric, to the caller's
-number of decimal places, at least one, and say the precision in the brief: reviewers left to
-choose answer in whole numbers, and a target of 9.5 is then out of reach. Say only the
-precision, never the target.
+them.
+
+When the caller needs a score, ask for one out of 10 against the rubric, to the caller's number of
+decimal places (at least one), and put both the precision and these anchors in the brief:
+
+- **10**: no defects found.
+- **9**: no blocking defects (scores between 9 and 10 reflect only non-blocking defects; scores
+  below 9 reflect at least one blocking defect).
+
+Tell reviewers to score on defects found in the change and in the checks this environment can run,
+and to note anything that could not be verified live (such as an unavailable platform or device) as
+unverified coverage without deducting points for it. Reviewers left to choose a precision answer in
+whole numbers, so a target of 9.5 is then out of reach; without explicit anchors they treat 10 as
+full merge confidence and dock points for checks the setup cannot run. State only the precision and
+anchors, never the target.
 
 **Comparison: matched pairs.** Compare like with like, one item at a time:
 

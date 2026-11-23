@@ -7,7 +7,8 @@ runs each round; this file is the loop around it.
 
 1. Write the rubric: what a good version of this change looks like in this repository, from what
    you have learned about its conventions, its users and the request, and whether a lint rule
-   could catch any of its mistakes mechanically. Keep the same rubric for every round.
+   could catch any of its mistakes mechanically. Describe the quality criteria and what counts as
+   a defect; leave the 1–10 score anchors to `council`. Keep the same rubric for every round.
 2. Take the settings from the request: the target score (9 if none was given), the round cap (5,
    or the count given, or none for "unlimited"), and the comparisons.
 
