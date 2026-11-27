@@ -6,9 +6,11 @@ runs each round; this file is the loop around it.
 ## Before the first round
 
 1. Write the rubric: what a good version of this change looks like in this repository, from what
-   you have learned about its conventions, its users and the request, and whether a lint rule
-   could catch any of its mistakes mechanically. Describe the quality criteria and what counts as
-   a defect; leave the 1–10 score anchors to `council`. Keep the same rubric for every round.
+   you have learned about its conventions, its users and the request, how cleanly it preserves
+   codebase coherence (fitting one model rather than introducing competing patterns, partial
+   migrations, or local workarounds), and whether a lint rule could catch any of its mistakes
+   mechanically. Describe the quality criteria and what counts as a defect; leave the 1–10 score
+   anchors to `council`. Keep the same rubric for every round.
 2. Take the settings from the request: the target score (9 if none was given), the round cap (5,
    or the count given, or none for "unlimited"), and the comparisons.
 
@@ -23,10 +25,12 @@ runs each round; this file is the loop around it.
 3. Otherwise read each seat's review for what kept its score down, and decide what to do about
    each point. Fix the bugs that held up and change what you agree with. Where you disagree,
    record why, so the next round's brief carries it. **Avoid feature creep and push back on
-   overscoped points.** A reviewer who wants more features, more configuration, more
+   overscoped points.** A reviewer who wants more features, more configuration, speculative
    abstraction or handling for cases the request never raised is asking for a different PR;
    decline it in a line and record the decision with its reason, so the next round's brief
-   carries it. A 20-line change should leave review as roughly a 20-line change.
+   carries it. Keep fixes that remove decoherence inside the touched change (unifying a competing
+   pattern, finishing a partial transition, or fixing a root cause instead of patching a symptom).
+   A 20-line change should leave review as roughly a 20-line change.
 4. When a reviewer proposes a lint rule, you decide whether it goes in, and the default is yes:
    a rule that catches a class of mistake mechanically keeps later rounds and builders from
    repeating it. Leave a rule out, or take it back out, when it gets in the way of the change

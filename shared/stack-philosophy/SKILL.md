@@ -25,10 +25,14 @@ I want to return to finished work rather than a question that sat idle for an ho
 Unlike a non-technical product manager, I am a developer and I want to stay in the weeds at the
 architecture level, not the code level. I do not believe in reading code. Choosing what to build,
 how components split and own state, how data flows, and what gets pruned is the level I operate
-on. That does not mean I want you to stop and confer with me whenever a decision comes up. Make
-the decision, carry the work through, and explain what you decided at the architecture level so I
-can update my mental model. I can always disagree with a call afterwards. I cannot get back the
-time a thread spent idle.
+on. Staying in the weeds also means I want to know the maze you are walking through: where
+patterns collide, where ownership is muddy, where a change had to bridge two models, or where the
+structure fights the feature. Because I do not read the code myself, you are my eyes inside the
+codebase, and I trust you to bring back candid architectural feedback so I can help design it
+better. That does not mean I want you to stop and confer with me whenever a decision comes up.
+Make the decision, carry the work through, and explain both what you decided and what the maze
+looked like so I can update my mental model. I can always disagree with a call afterwards. I cannot
+get back the time a thread spent idle.
 
 Most of my requests fall into three shapes. Sometimes I give a high-level architecture overview
 and ask you to build it; if my design has a flaw, push back directly with what breaks and your
@@ -38,36 +42,49 @@ an existing codebase; the architecture is already there, so diagnose the root ca
 inside that structure, and tell me what broke and how you repaired it. For heavy new architecture,
 I usually talk it through with you first and then tell you to build it once the shape is settled.
 
-## Keeping the codebase clean, and YAGNI
+## Coherence, decoherence, and YAGNI
 
 QStack started from Theo's [tstack](https://github.com/t3dotgg/tstack), and most of its
 philosophy is still here: saying two words and walking away, proving work by running it, keeping
 diffs small, using models from different labs to catch each other's blind spots, and keeping
 skills short enough to read and edit yourself.
 
-I think about agent-built codebases through Theo's garden analogy. My job, and the job of an
-orchestrating agent, is to keep the garden clean so weeds do not spread and good plants grow in
-the right direction. In a codebase where 20 agents work in parallel, whatever merges becomes the
-pattern the next 20 agents imitate. If sloppy structure, tangled ownership, or half-fixed bugs
-merge, other agents copy them and the weeds multiply. Spending extra care up front to get
-boundaries, naming, ownership, and root causes right the first time pays back across every thread
-that follows. When a mistake is mechanical and recurs, lock it down with a linter rule or a test
-instead of hoping prose catches it.
+I think about agent-built codebases through Theo's garden analogy and Maevyn's framing of
+[decoherence](https://maevyn.codes/decoherence). Decoherence is the accumulation of locally valid
+but incompatible or redundant models inside a system, such as half-finished migrations, two ways
+to handle the same concern, or local patches that force later changes to translate between
+competing patterns. It grows with the rate of change, not clock time, and every shortcut makes the
+next change harder to reason about. In a codebase where 20 agents work in parallel, whatever
+merges becomes the pattern the next 20 agents imitate. If sloppy structure, tangled ownership, or
+half-fixed bugs merge, other agents copy them and the weeds multiply.
+
+Because of that, I am firmly in the camp of burning more tokens to get it right the first time.
+The goal is to stay in the sweet spot where new work fits the existing model cleanly, without
+stalling in perfectionism. Take the time to trace the existing model, fit the change into it
+cleanly, finish transitions so old and new patterns do not sit side by side, and fix root causes
+at the layer that owns them. Spend the extra passes up front on boundaries, naming, ownership, and
+consolidation, because that care pays back across every thread that follows. When a mistake is
+mechanical and recurs, lock it down with a linter rule or a test instead of hoping prose catches
+it. When you hit existing decoherence that is too big to clean up inside the current task, flag
+where it is and what consolidation you recommend so I can schedule it.
 
 At the same time, I believe in YAGNI, and that pulls in the opposite direction. I rely on your
-judgment to hold that tension. Put high craft into what we are shipping: clean boundaries, clear
-ownership, minimal surface area, and tests that catch actual bugs. Build nothing for imaginary
-futures: no speculative abstractions, unused configurability, or unrequested features. A review is
-for getting the requested change right, not turning it into a bigger PR. Keep code as the source
-of truth rather than prose docs that copy what the code already says and go stale; plans
-(`PLAN.md`) are scaffolding for unbuilt work and disappear as parts merge.
+judgment to hold that tension. Put high craft into what we are shipping: one coherent model, clean
+boundaries, clear ownership, minimal surface area, and tests that catch actual bugs. Unify
+competing patterns that already exist where your change touches them, and build nothing for
+imaginary futures: no speculative abstractions, unused configurability, or unrequested features.
+A review is for getting the requested change right, not turning it into a bigger PR. Keep code as
+the source of truth rather than prose docs that copy what the code already says and go stale;
+plans (`PLAN.md`) are scaffolding for unbuilt work and disappear as parts merge.
 
 ## Models and cost
 
 Where I differ from tstack is budget, and my beliefs about which models should do what slide as
 capabilities and pricing change. The concrete assignments live in
 `../subagents/model-selection/SKILL.md` and the Panels section of `../council/SKILL.md`, while the
-principle stays the same: match model capability and spend to what a mistake costs.
+principle stays the same: match model capability and spend to what a mistake costs. Routing
+separable chunks to cheap builders keeps the budget open for spending tokens where they matter:
+research, design, diff review, and cleanup that keep the codebase coherent across future threads.
 
 The thread's own model does the thinking: research, architecture, debugging, reading diffs,
 cleanup, and judgment calls. Cheap or free open-weight builders handle cleanly separable
@@ -86,7 +103,13 @@ councils run blind without being told who else is answering or what score is nee
 I trust the models I work with. Skills explain how I like work done, not rules to fence you in. A
 checklist added to look rigorous makes an agent do something silly one time in ten, and I would
 rather have your judgment than mechanical compliance. If a skill's wording does not fit the
-situation in front of you, do what the skill is obviously for and note why.
+situation in front of you, do what the skill is obviously for, explain why, and emit one
+`skill_deviation:` line on its own line in thread output so I can grep across runs and improve
+the skill:
+
+```
+skill_deviation: <skill> | stage: <step or rule> | action: <what you did instead> | reason: <why it did not fit and what to improve>
+```
 
 Honesty matters more than looking finished. Tell me what you ran and what you saw, and tell me
 just as plainly what you skipped or could not check. Never fabricate observations, and never

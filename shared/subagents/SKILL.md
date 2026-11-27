@@ -40,7 +40,8 @@ The brief is all the child knows. Write it so the child has nothing left to gues
 
 - the outcome, and the request it serves;
 - the files and symbols it owns, and what is out of scope;
-- what you already know: decisions made, patterns in the repository to copy, findings by path;
+- what you already know: decisions made, the canonical patterns and conventions in the repository
+  to match so parallel builders stay coherent, and findings by path;
 - the commands that check the work;
 - anything shared it must not start a second copy of, such as a dev server, a port or a GPU,
   and which child owns it;
@@ -76,8 +77,9 @@ Cancel a child you have replaced or no longer need with `task_cancel`.
 ## Stage 5: Read what came back
 
 A child's summary is a claim. Open what it changed or found and check it against the brief: run
-the check commands, read the diff, open the cited source. After reading a builder's diff, emit the
-`builder_review:` line per `model-selection/SKILL.md`.
+the check commands, read the diff for both correctness and coherence with the agreed model, and
+open the cited source. After reading a builder's diff, emit the `builder_review:` line per
+`model-selection/SKILL.md`.
 
 When a piece is wrong or incomplete, use Git to roll back or cherry-pick around bad edits rather
 than untangling them by hand, scoping any rollback in a shared checkout to that child's owned

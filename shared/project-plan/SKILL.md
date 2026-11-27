@@ -19,8 +19,9 @@ metadata:
 
 - One file, `PLAN.md`, at the repository root: the design decisions and the work still to do, in
   the order to do it.
-- A short summary for the user: the design, the main tradeoffs, the first part to build, and any
-  decision that still blocks it.
+- A short summary for the user: the design, the main tradeoffs, any existing decoherence or
+  structural friction in the codebase the plan retires or works around, the first part to build,
+  and any decision that still blocks it.
 
 # What PLAN.md is
 
@@ -55,9 +56,10 @@ meanwhile. Record cheaper assumptions in the plan, explain them in the summary, 
 
 Research how the pieces will fit: the interfaces, where state lives, what depends on what, and
 the external services or libraries the design leans on, checked against their own documentation.
-Choose the smallest design that reaches the outcome without speculative abstractions, make
-ownership and boundaries clean enough for future PRs to build on, and say why its boundaries fit
-the constraints.
+Choose the smallest coherent design that fits the existing system without speculative
+abstractions, make ownership and boundaries clean enough for future PRs to build on, and say why
+its boundaries fit the constraints. When a plan replaces an existing pattern, include the part that
+retires the old path so the codebase does not end up straddling two models.
 
 ## Stage 3: Write PLAN.md
 

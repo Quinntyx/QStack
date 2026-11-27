@@ -55,7 +55,7 @@ Everything in `shared/` works in all three harnesses.
 | `web-search` | Search the web, read pages and screenshot them. Uses the harness's own web tools, then curl, then Context.dev for pages those cannot load. |
 | `deslop` | Write text that leaves the conversation, from a README to a two-line email, without it sounding machine-made. |
 | `estimate-time` | Estimate how long agent work will take, from measured per-model times. |
-| `stack-philosophy` | Not a procedure. The philosophy behind QStack, in the same voice as this README: how I work across parallel threads at the architecture level, keeping the codebase clean vs. YAGNI, model delegation, when to stop, and how to resolve doubt. Agents read it whenever they are unsure what to do. |
+| `stack-philosophy` | Not a procedure. The philosophy behind QStack, in the same voice as this README: how I work across parallel threads at the architecture level, codebase coherence and decoherence vs. YAGNI, model delegation, when to stop, and how to resolve doubt. Agents read it whenever they are unsure what to do. |
 | `reflect` | Turn lessons from the current conversation into proposed skill edits. Adapted from pstack. |
 
 `claude/`, `pi/` and `antigravity/` each hold three `harness-*` skills (`harness-config`,

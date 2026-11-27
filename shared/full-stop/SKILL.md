@@ -8,6 +8,17 @@ metadata:
   type: procedure
 ---
 
+> This procedure is an AI-generated living document downstream from `../stack-philosophy/SKILL.md`.
+> Because it prescribes a fixed sequence of steps, it can be overly rigid for a given task. When
+> `../stack-philosophy/SKILL.md` points to a better call, you are authorized to deviate from the
+> workflow stages below; the grant and safety boundaries in Stage 1 still hold. Whenever you
+> deviate, explain why in the handoff and emit one `skill_deviation:` line on its own line in
+> thread output so it can be grepped across runs:
+>
+> ```
+> skill_deviation: full-stop | stage: <stage or rule> | action: <what you did instead> | reason: <why it did not fit and what to improve>
+> ```
+
 # Contract
 
 ## Input Contract
@@ -21,11 +32,13 @@ metadata:
 ## Output Contract
 
 - The PR open, unmerged and ready per the Readiness gate, or a blocked state with one question.
-- A handoff naming the PR link, final head, verdict, proof, remaining risks and the decisions you
-  made for the user. If builders ran, include a brief honest assessment of how each builder
-  performed per `../subagents/model-selection/SKILL.md`. If a council ran, include each round's
-  scores, and omit `sol_comparison` lines from the final handoff (they belong in the thread right
-  after each review round).
+- A handoff naming the PR link, final head, verdict, proof, remaining risks, the decisions and
+  any workflow deviations you made for the user, and any architectural friction or decoherence you
+  ran into in the codebase with your recommendation if it warrants follow-up. If builders ran,
+  include a brief honest assessment of how each builder performed per
+  `../subagents/model-selection/SKILL.md`. If a council ran, include each round's scores, and omit
+  `sol_comparison` lines from the final handoff (they belong in the thread right after each review
+  round).
 - No PR watch or check-back schedule left active, and no delegate left running.
 
 # Entrypoint
@@ -66,8 +79,11 @@ On the default branch, pick the task branch with `../git/SKILL.md` first.
 If the repository has a `PLAN.md`, the request is usually one of its parts. Read it: its
 decisions bind this work.
 
-Research the request yourself: read the code it touches, and search the web for how others have
-built the same thing when that would inform the design.
+Research the request yourself: read the code it touches, understand the existing models and
+conventions it lives inside, and search the web for how others have built the same thing when
+that would inform the design. Design for coherence with the rest of the codebase: fit the change
+into one clear model, and when the task replaces an existing pattern, plan to retire the old path
+rather than straddling both.
 
 If the request turns on a significant architecture choice, or asks you to be creative, hold a
 design round with `../council/SKILL.md` and hand it everything you found. While it runs, work
@@ -140,10 +156,12 @@ found and repaired afterwards goes in as `fix`, `chore` and the like.
 
 ## Stage 6: Clean up
 
-Make the diff small, limited to the request, and clean enough for future agents to imitate.
+Make the diff small, coherent, limited to the request, and clean enough for future agents to
+imitate.
 
-- In the code this change adds or touches, clean up sloppy boundaries, naming, or ownership so
-  future agents copy clean patterns, without adding speculative abstractions or touching
+- In the code this change adds or touches, keep one consistent model: clean up sloppy boundaries,
+  naming, ownership, local workarounds, or competing patterns introduced along the way, and finish
+  any partial transition the task started, without adding speculative abstractions or touching
   unrelated code.
 - Read every test that was added. Delete the ones that would not catch a real mistake.
 - Delete comments that narrate the code or restate it.

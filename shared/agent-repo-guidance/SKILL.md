@@ -23,8 +23,9 @@ metadata:
 # What goes in a guidance file
 
 Operating rules: what an agent working here must know and cannot quickly find out from the code.
-That means unusual domain vocabulary, safety and state boundaries, which doc to read for which
-task, the taste rules that matter, and the real commands for checking a change.
+That means unusual domain vocabulary, canonical patterns and any deprecated ones being retired,
+safety and state boundaries, which doc to read for which task, the taste rules that matter, and
+the real commands for checking a change.
 
 A guidance file does not describe how the existing system behaves. The code does that, and a
 second copy in prose goes stale and misleads the next agent. Work that is not built yet belongs
